@@ -48,12 +48,19 @@ final class ScanStore: ObservableObject {
 
     // MARK: - Lifecycle
 
-    func start() {
-        Task { await refresh() }
-        scheduleTimer()
-
-        Task {
-            binaryVersion = try? await DoctorDockCLI.version()
+    init() {
+        // The store scans as soon as it exists, rather than waiting for a view
+        // to call a start method.
+        //
+        // The first version had a start() that nothing called: the app sat in
+        // .idle forever, which rendered as a spinner, so it looked like a hung
+        // scan rather than a scan that never began. Removing the hook removes
+        // the failure mode — there is nothing left to forget.
+        Task { @MainActor in
+            Log.info("store created, starting the first scan")
+            self.scheduleTimer()
+            await self.refresh()
+            self.binaryVersion = try? await DoctorDockCLI.version()
         }
     }
 
@@ -81,9 +88,11 @@ final class ScanStore: ObservableObject {
             state = .scanning
         }
 
+        let started = Date()
         do {
             let report = try await DoctorDockCLI.scan()
             let earlier = state.report?.score
+            Log.info("scan finished in \(String(format: "%.2f", Date().timeIntervalSince(started)))s — score \(report.score), \(report.findings.count) findings")
 
             state = .loaded(report)
             lastUpdated = Date()
@@ -94,8 +103,10 @@ final class ScanStore: ObservableObject {
             }
             pruneNotifiedCritical(against: report)
         } catch let failure as DoctorDockCLI.Failure {
+            Log.error("scan failed: " + (failure.errorDescription ?? "unknown"))
             state = .failed(failure)
         } catch {
+            Log.error("scan failed: " + error.localizedDescription)
             state = .failed(.commandFailed(exitCode: -1, stderr: error.localizedDescription))
         }
     }

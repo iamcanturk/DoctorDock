@@ -59,13 +59,31 @@ enum PanelWindow {
 }
 
 /// Bridges the async self-test into `init`, which cannot await.
+///
+/// The obvious implementation — start a Task, block on a semaphore — deadlocks.
+/// The self-test drives a ScanStore, which is @MainActor, and the MainActor's
+/// work runs on this thread. Blocking it means that work can never execute, so
+/// the test waits forever for something it has itself prevented from running.
+///
+/// Pumping the run loop instead keeps the main thread available while waiting,
+/// which is the same reason a spinner in a GUI needs the main thread free.
 private func runSelfTestSynchronously() -> Int32 {
-    let semaphore = DispatchSemaphore(value: 0)
     var result: Int32 = 1
-    Task {
+    var finished = false
+
+    Task { @MainActor in
         result = await SelfTest.run()
-        semaphore.signal()
+        finished = true
     }
-    semaphore.wait()
+
+    let deadline = Date().addingTimeInterval(180)
+    while !finished && Date() < deadline {
+        RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.05))
+    }
+
+    if !finished {
+        print("\nFAIL — the self-test did not finish within 180s\n")
+        return 1
+    }
     return result
 }

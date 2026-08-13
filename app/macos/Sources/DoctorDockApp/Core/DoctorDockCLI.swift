@@ -104,9 +104,11 @@ enum DoctorDockCLI {
                 process.standardOutput = stdout
                 process.standardError = stderr
 
+                Log.info("run: doctordock " + arguments.joined(separator: " "))
                 do {
                     try process.run()
                 } catch {
+                    Log.error("could not start doctordock: " + error.localizedDescription)
                     continuation.resume(throwing: Failure.commandFailed(
                         exitCode: -1, stderr: error.localizedDescription))
                     return

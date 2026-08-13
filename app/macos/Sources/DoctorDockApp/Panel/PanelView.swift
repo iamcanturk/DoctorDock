@@ -40,7 +40,15 @@ struct PanelView: View {
         } detail: {
             Group {
                 switch store.state {
-                case .idle, .scanning where store.report == nil:
+                case .idle:
+                    ContentUnavailableView {
+                        Label("No scan yet", systemImage: "stethoscope")
+                    } description: {
+                        Text("Nothing has been scanned in this session.")
+                    } actions: {
+                        Button("Scan now") { Task { await store.refresh() } }
+                    }
+                case .scanning where store.report == nil:
                     ProgressView("Scanning…")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 case .failed(let failure) where store.report == nil:

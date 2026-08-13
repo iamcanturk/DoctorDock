@@ -14,7 +14,9 @@ struct PopoverView: View {
             Divider()
 
             switch store.state {
-            case .idle, .scanning where store.report == nil:
+            case .idle:
+                idle
+            case .scanning where store.report == nil:
                 loading
             case .failed(let failure) where store.report == nil:
                 FailureView(failure: failure) {
@@ -79,6 +81,23 @@ struct PopoverView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
+    }
+
+    // A store that has not scanned is a different thing from one that is
+    // scanning, and must not look the same — that is what made a missing
+    // first scan read as a hung one.
+    private var idle: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("No scan yet.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            Button("Scan now") {
+                Task { await store.refresh() }
+            }
+            .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
     }
 
     private var loading: some View {

@@ -117,6 +117,27 @@ enum SelfTest {
             check("explain", false, describe(error))
         }
 
+        // 6. The store must scan without anyone telling it to.
+        //
+        // This check exists because the first version had a start() method that
+        // nothing called: every check above passed, the bridge was fine, and the
+        // app still showed a spinner forever. Testing the bridge is not the same
+        // as testing that anything uses it.
+        let store = await ScanStore()
+        let deadline = Date().addingTimeInterval(60)
+        var reachedLoaded = false
+        while Date() < deadline {
+            let done = await MainActor.run { store.report != nil }
+            if done { reachedLoaded = true; break }
+            let stuckOnFailure = await MainActor.run {
+                if case .failed = store.state { return true }
+                return false
+            }
+            if stuckOnFailure { break }
+            try? await Task.sleep(nanoseconds: 200_000_000)
+        }
+        check("the store scans on its own, with no start() to forget", reachedLoaded)
+
         print("\n\(failures == 0 ? "PASS" : "FAIL — \(failures) check(s) failed")\n")
         return failures == 0 ? 0 : 1
     }

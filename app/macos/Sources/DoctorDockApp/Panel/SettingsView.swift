@@ -37,6 +37,18 @@ struct SettingsView: View {
                 }
                 Link("github.com/iamcanturk/DoctorDock",
                      destination: URL(string: "https://github.com/iamcanturk/DoctorDock")!)
+
+                // A menubar app has no console. When something goes wrong the
+                // only way to find out what is this file, so it is offered
+                // rather than left to be discovered.
+                HStack {
+                    Text("Diagnostics")
+                    Spacer()
+                    Button("Reveal log") {
+                        NSWorkspace.shared.selectFile(Log.path, inFileViewerRootedAtPath: "")
+                    }
+                    .controlSize(.small)
+                }
             }
         }
         .formStyle(.grouped)
