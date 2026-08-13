@@ -1,0 +1,23 @@
+# Build output
+/bin/
+/dist/
+doctordock
+ddock
+*.exe
+
+# Test artifacts
+*.out
+coverage.*
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Node (npm wrapper package)
+node_modules/
+packaging/npm/bin/
+
+# Local swarm state (not part of the product)
+/.swarm/
