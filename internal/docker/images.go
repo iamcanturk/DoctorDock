@@ -46,7 +46,15 @@ func (c *engineClient) buildImage(ctx context.Context, s image.Summary) model.Im
 		Created:     time.Unix(s.Created, 0).UTC(),
 		Labels:      s.Labels,
 	}
-	m.Dangling = len(m.RepoTags) == 0
+	// Dangling matches Docker's own definition — no references of any kind,
+	// neither tags nor digests — because DD014 tells the user to run
+	// `docker image prune`, which removes exactly what `dangling=true` matches.
+	// Flagging an image that prune would leave behind sends them after a
+	// command that does nothing.
+	//
+	// An image that kept a digest reference but lost its tag is still reported,
+	// by DD015 as an unused image, so nothing falls through the gap.
+	m.Dangling = len(m.RepoTags) == 0 && len(m.RepoDigests) == 0
 
 	// Architecture, OS and layer count are only available from an inspect.
 	// A failure here costs three optional fields, not the scan.

@@ -105,6 +105,13 @@ jobs:
 
       - run: go test -tags integration -v ./tests/integration/...
 
+      - name: Rule coverage against a real daemon
+        # Unit tests prove each rule matches a fixture. This stands up an
+        # environment that is broken in eighteen specific ways and asserts that
+        # all eighteen are found, which is the only thing that proves the whole
+        # chain from the Engine API to the JSON.
+        run: ./tests/e2e/run.sh
+
       - name: Scan the runner
         run: go run ./cmd/doctordock --no-color
 

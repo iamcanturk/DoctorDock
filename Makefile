@@ -42,6 +42,10 @@ test-race: ## Run unit tests with the race detector
 test-integration: ## Run integration tests (requires a Docker daemon)
 	go test -tags integration -v ./tests/integration/...
 
+.PHONY: test-e2e
+test-e2e: ## Rule coverage against a real daemon (creates and removes ddtest-* resources)
+	./tests/e2e/run.sh
+
 .PHONY: cover
 cover: ## Run tests and open the coverage report
 	go test -coverprofile=coverage.out ./...

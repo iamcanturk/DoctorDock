@@ -232,3 +232,33 @@ func TestForEachRunsEveryIndex(t *testing.T) {
 		}
 	}
 }
+
+// TestDanglingMatchesDockersDefinition pins DD014's meaning to what
+// `docker image prune` actually removes. An image that kept a digest reference
+// after losing its tag is not dangling: prune leaves it, so reporting it would
+// send the user after a command that does nothing.
+func TestDanglingMatchesDockersDefinition(t *testing.T) {
+	tests := []struct {
+		name     string
+		tags     []string
+		digests  []string
+		dangling bool
+	}{
+		{"tagged", []string{"nginx:1.25"}, []string{"nginx@sha256:abc"}, false},
+		{"tag only", []string{"local/app:v1"}, nil, false},
+		{"digest only, no tag", nil, []string{"nginx@sha256:abc"}, false},
+		{"no references at all", nil, nil, true},
+		{"placeholder references", []string{"<none>:<none>"}, []string{"<none>@<none>"}, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tags, digests := cleanRefs(tt.tags), cleanRefs(tt.digests)
+			got := len(tags) == 0 && len(digests) == 0
+			if got != tt.dangling {
+				t.Errorf("dangling = %v, want %v (tags=%v digests=%v)",
+					got, tt.dangling, tags, digests)
+			}
+		})
+	}
+}

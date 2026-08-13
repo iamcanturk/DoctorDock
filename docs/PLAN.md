@@ -63,6 +63,7 @@ Non-goals for v0.1: AI, CVE databases, automatic cleanup, GUI, telemetry, cloud.
 | 23 | npm wrapper package | ✅ done |
 | 24 | README + docs | ✅ done |
 | 25 | Generated rule catalogue (`make docs`) | ✅ done |
+| 26 | End-to-end rule coverage against a real daemon (`make test-e2e`) | ✅ done |
 
 ## Architecture boundary that matters most
 
@@ -131,6 +132,15 @@ mutable tags, unhealthy containers and restart loops.
 **The binary is smaller than costed.** ADR-0002 accepted 15–20 MB for the Docker
 SDK. The measured binary is 10–11 MB, 4 MB compressed — only the client half is
 reachable, so the linker drops the rest. Both ADRs were corrected.
+
+**Nine rules had never touched a real daemon.** Unit tests covered every rule
+against fixtures, but a normal developer machine produces no privileged
+container, no mounted Docker socket and no host networking, so DD002–DD005,
+DD009, DD012, DD014 and DD016 were only ever proven against structs. `make
+test-e2e` now stands up an environment broken in eighteen specific ways and
+asserts all eighteen are found, plus that none of them fire on a
+correctly-configured container. Writing it immediately found that DD014's
+definition of "dangling" was broader than Docker's.
 
 **The container image needs `--group-add`.** Running as non-root — required so
 the tool does not flag its own image under DD001 — means it cannot read the
