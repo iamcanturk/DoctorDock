@@ -3,7 +3,13 @@ ALIAS       := ddock
 MODULE      := github.com/iamcanturk/DoctorDock
 BIN_DIR     := bin
 
-VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
+# A tagged build reports the tag. Before the first tag exists, `git describe`
+# would return a bare commit hash, which is not a version anyone can reason
+# about, so it becomes a dev build of the version being worked towards.
+NEXT_VERSION := 0.1.0
+VERSION     ?= $(shell git describe --tags --exact-match 2>/dev/null \
+                 || git describe --tags --dirty 2>/dev/null \
+                 || echo "$(NEXT_VERSION)-dev+$$(git rev-parse --short HEAD 2>/dev/null || echo unknown)")
 COMMIT      ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 
 # -s -w strip the symbol table and DWARF data; the Docker SDK makes the binary
@@ -22,8 +28,34 @@ build: ## Build the binary into bin/
 	@cp $(BIN_DIR)/$(BINARY) $(BIN_DIR)/$(ALIAS)
 	@echo "built $(BIN_DIR)/$(BINARY) ($(VERSION))"
 
+# Where `make install` puts the binary. The first writable directory that is
+# already on PATH is the right answer on most machines; override with
+# `make install PREFIX=/somewhere`.
+PREFIX      ?= $(shell for d in /opt/homebrew/bin /usr/local/bin $$HOME/.local/bin; do \
+                 if [ -w "$$d" ]; then echo "$$d"; break; fi; done)
+
 .PHONY: install
-install: ## Install the binary into GOPATH/bin
+install: build ## Install doctordock and the ddock alias onto PATH
+	@if [ -z "$(PREFIX)" ]; then \
+		echo "no writable install directory found; try: make install PREFIX=~/.local/bin"; \
+		exit 1; \
+	fi
+	@mkdir -p "$(PREFIX)"
+	install -m 0755 $(BIN_DIR)/$(BINARY) "$(PREFIX)/$(BINARY)"
+	@ln -sf "$(PREFIX)/$(BINARY)" "$(PREFIX)/$(ALIAS)"
+	@echo "installed $(PREFIX)/$(BINARY) and $(PREFIX)/$(ALIAS) ($(VERSION))"
+
+.PHONY: uninstall
+uninstall: ## Remove the installed binary and alias
+	rm -f "$(PREFIX)/$(BINARY)" "$(PREFIX)/$(ALIAS)"
+	@echo "removed from $(PREFIX)"
+
+.PHONY: completions
+completions: build ## Install shell completion for the current shell
+	@./scripts/install-completions.sh "$(BIN_DIR)/$(BINARY)"
+
+.PHONY: go-install
+go-install: ## Install into GOPATH/bin with `go install`
 	go install $(GOFLAGS) -ldflags "$(LDFLAGS)" ./cmd/doctordock
 
 .PHONY: run
@@ -75,8 +107,20 @@ docs-check: ## Fail if docs/RULES.md is out of date
 	@git diff --exit-code docs/RULES.md \
 		|| (echo "docs/RULES.md is out of date; run 'make docs'"; exit 1)
 
+.PHONY: cross
+cross: ## Build every release target, to catch platform-specific breakage
+	@for t in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do \
+		GOOS=$${t%/*} GOARCH=$${t#*/} go build -o /dev/null ./... \
+			&& echo "  ok    $$t" \
+			|| { echo "  FAIL  $$t"; exit 1; }; \
+	done
+
 .PHONY: check
-check: fmt-check vet build test ## Everything CI runs
+check: fmt-check vet build test ## Fast pre-commit checks
+
+.PHONY: verify
+verify: ## Everything, locally. Run this before tagging a release.
+	@./scripts/verify.sh
 
 .PHONY: lint
 lint: ## Run golangci-lint if it is installed

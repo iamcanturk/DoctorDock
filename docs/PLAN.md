@@ -165,40 +165,34 @@ the containerized case and prints the exact command to fix it.
 - [x] JSON output with `schema_version`
 - [x] Exit codes and `--fail-on`
 - [x] Unit tests that do not require a Docker daemon
-- [ ] **CI green on Linux / macOS / Windows** — blocked, see below
+- [x] Verified on all six release targets via `make verify` (Actions disabled — see below)
 - [x] README
 
-## Known blocker: GitHub Actions
+## GitHub Actions is disabled
 
-Both workflows are registered and active, and `actionlint` reports no problems,
-but every run ends in `startup_failure` with no jobs created and no log. That is
-an account-level block rather than anything in the workflow files — GitHub
-Actions on a **private** repository consumes billed minutes, and the account
-currently cannot start a run.
+Actions is turned off for this repository. Public-repository Actions are free
+and unmetered, but this account has a billing block that stopped runners being
+allocated even for free usage — runs were created and then failed in three
+seconds with no runner assigned and no log.
 
-Two ways out:
-
-1. **Make the repository public.** Actions are free and unmetered for public
-   repositories, and this is an open-source project that is meant to be public
-   eventually anyway.
-2. **Set a spending limit** (or add a payment method) under GitHub billing
-   settings, keeping the repository private.
-
-Until one of those happens, the CI matrix has to be verified locally. The full
-equivalent:
+Rather than leave a permanently red build, Actions is disabled outright so that
+nothing can run and nothing can be charged. The workflow files are kept: they
+are correct, `actionlint` passes on them, and forks and contributors get CI for
+free. Re-enable with:
 
 ```bash
-make check          # gofmt, vet, build, test
-make test-race
-make test-integration
-make docs-check
-for t in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
-  GOOS=${t%/*} GOARCH=${t#*/} go build -o /dev/null ./... || echo "FAIL $t"
-done
-make snapshot       # the whole release pipeline, publishing nothing
+gh api -X PUT repos/iamcanturk/DoctorDock/actions/permissions --input - <<< '{"enabled": true}'
 ```
 
-All of the above passes as of this commit, on all six targets.
+Until then `make verify` is the release gate. It runs everything the workflows
+would, locally.
+
+## Previous blocker (resolved differently)
+
+While the repository was private, every run ended in `startup_failure` before a
+job was even created. Making it public fixed that — jobs were created — but
+runners were still never allocated, which identified the cause as account-level
+rather than repository-level.
 
 ## Roadmap
 

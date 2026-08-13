@@ -7,8 +7,8 @@
 Find the security problems, misconfigurations and wasted disk in your Docker
 environment — in under a second, entirely offline.
 
-[![test](https://github.com/iamcanturk/DoctorDock/actions/workflows/test.yml/badge.svg)](https://github.com/iamcanturk/DoctorDock/actions/workflows/test.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/iamcanturk/DoctorDock.svg)](https://pkg.go.dev/github.com/iamcanturk/DoctorDock)
+[![Go Report Card](https://goreportcard.com/badge/github.com/iamcanturk/DoctorDock)](https://goreportcard.com/report/github.com/iamcanturk/DoctorDock)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **No AI · No network calls · No telemetry · No account · Nothing deleted without `--apply`**
@@ -336,8 +336,37 @@ cd DoctorDock
 make build && ./bin/doctordock
 ```
 
+### Installing your own build
+
 ```bash
-make check              # fmt + vet + build + test — what CI runs
+make install        # doctordock + the ddock alias onto PATH
+make completions    # shell completion for your shell
+make uninstall      # remove both
+```
+
+`make install` picks the first writable directory already on your `PATH`.
+Override it with `make install PREFIX=~/.local/bin`.
+
+### Verifying a change
+
+```bash
+make check     # fast: gofmt, vet, build, unit tests
+make verify    # everything — run this before tagging a release
+```
+
+`make verify` is the release gate. GitHub Actions is **disabled** for this
+repository, so verification happens locally and nothing runs in the cloud. It
+covers formatting, `go vet`, module tidiness, the generated rule catalogue,
+builds for all six release targets, unit tests with and without the race
+detector, integration tests against a real daemon, the end-to-end rule coverage
+suite, and the GoReleaser config.
+
+Individual pieces:
+
+```bash
+make test               # unit tests, no Docker daemon needed
+make test-race
+make cross              # build all six platform targets
 make test-integration   # requires a Docker daemon
 make test-e2e           # all 18 rules against a real daemon, creates and removes ddtest-*
 make docs               # regenerate docs/RULES.md from the registry
@@ -345,7 +374,8 @@ make help               # every target
 ```
 
 Unit tests need no Docker daemon: `internal/docker.Fake` implements the client
-interface from fixtures, which is what lets CI cover macOS, Linux and Windows.
+interface from fixtures, which is what makes the cross-platform build check
+meaningful without a daemon on each platform.
 
 Requires Go 1.25+ — the Docker SDK pulls in a transitive dependency that needs it.
 
