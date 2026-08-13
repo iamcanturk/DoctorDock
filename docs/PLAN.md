@@ -72,6 +72,8 @@ product than doing it for them, carefully.
 | 25 | Generated rule catalogue (`make docs`) | ✅ done |
 | 26 | End-to-end rule coverage against a real daemon (`make test-e2e`) | ✅ done |
 | 27 | `doctordock cleanup` — dry run by default, staged by risk | ✅ done |
+| 28 | `doctordock explain` — long-form rule explanations | ✅ done |
+| 29 | macOS menubar app (SwiftUI, Swift package, no Xcode needed) | ✅ done |
 
 ## Architecture boundary that matters most
 

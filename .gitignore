@@ -15,6 +15,10 @@ coverage.*
 .vscode/
 *.swp
 
+# macOS app build output
+app/macos/.build/
+app/macos/build/
+
 # Node (npm wrapper package)
 node_modules/
 packaging/npm/bin/doctordock

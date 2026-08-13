@@ -241,6 +241,35 @@ Cleanup also accounts for ordering: an image referenced only by a stopped
 container that is *also* being removed counts as unused, so you never have to
 run the command twice for it to converge.
 
+## macOS app
+
+A native SwiftUI menubar app lives in [`app/macos`](app/macos). It shows the
+health score in the menubar, colour-coded, and opens a full panel with
+findings, resource tables and cleanup.
+
+```bash
+make app-install     # builds and installs into ~/Applications
+open ~/Applications/DoctorDock.app
+```
+
+Building it needs the Xcode **Command Line Tools**, not Xcode itself — the app
+is a Swift package rather than an `.xcodeproj`, so `swift build` is enough. See
+[ADR-0007](docs/adr/0007-macos-app-as-a-swift-package.md).
+
+The app never talks to Docker itself. It runs the same `doctordock` binary and
+decodes its JSON, which is what stops the two ever disagreeing about a number,
+and means the cleanup safety rules are enforced in exactly one place. The
+engine is bundled inside the app, so it works with nothing else installed; a
+copy on `PATH` wins when present, so `brew upgrade doctordock` improves the app
+too.
+
+```bash
+make app-test        # the whole Swift-to-Go bridge, headless
+```
+
+The app is ad-hoc signed, which is enough to run it on the machine that built
+it. It is not yet notarized, so it is not distributable to other machines.
+
 ## CI/CD usage
 
 Exit codes are **opt-in**. Without `--fail-on`, DoctorDock always exits 0 — a
@@ -336,6 +365,7 @@ Design decisions are recorded as ADRs:
 - [ADR-0004](docs/adr/0004-json-as-the-gui-contract.md) — JSON as the GUI contract
 - [ADR-0005](docs/adr/0005-no-secret-collection.md) — environment variable values are never read
 - [ADR-0006](docs/adr/0006-cleanup-safety-model.md) — cleanup is opt-in, staged by risk, and never cascades
+- [ADR-0007](docs/adr/0007-macos-app-as-a-swift-package.md) — the macOS app is a Swift package, so building it needs no Xcode
 
 More: [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [JSON_SCHEMA.md](docs/JSON_SCHEMA.md) · [SCORING.md](docs/SCORING.md) · [ROADMAP.md](docs/ROADMAP.md)
 

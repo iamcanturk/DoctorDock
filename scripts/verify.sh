@@ -108,6 +108,34 @@ else
   rm -f /tmp/dd-e2e.log
 fi
 
+bold "macOS app"
+
+if ! command -v swift >/dev/null 2>&1; then
+  skip "Swift not available"
+elif [ "${SKIP_DOCKER:-}" = "1" ] || ! docker info >/dev/null 2>&1; then
+  # The app builds without Docker; only its self-test needs a daemon.
+  if (cd app/macos && swift build -c release >/dev/null 2>&1); then
+    ok "app builds"
+  else
+    bad "app does not build"
+    (cd app/macos && swift build -c release 2>&1 | grep error: | sed 's/^/      /' | head -10)
+  fi
+  skip "app self-test skipped — no Docker daemon"
+else
+  if (cd app/macos && ./scripts/build-app.sh --release >/dev/null 2>&1); then
+    ok "app bundle assembles"
+    if out=$(cd app/macos && ./build/DoctorDock.app/Contents/MacOS/DoctorDock --selftest 2>&1); then
+      ok "app self-test (Swift-to-Go bridge)"
+    else
+      bad "app self-test"
+      printf '%s\n' "$out" | grep '✗' | sed 's/^/      /' | head -10
+    fi
+  else
+    bad "app bundle does not assemble"
+    (cd app/macos && ./scripts/build-app.sh --release 2>&1 | grep -i error | sed 's/^/      /' | head -10)
+  fi
+fi
+
 bold "Release pipeline"
 
 if command -v goreleaser >/dev/null 2>&1; then

@@ -12,7 +12,7 @@ direction, not a promise.
 | v0.5 | CI/CD integration | SARIF output for GitHub code scanning, JUnit XML, a `--diff` mode comparing two reports, prebuilt container image usage docs |
 | v0.6 | Performance analysis | Live resource sampling via the stats API, disk usage attribution per image layer, restart-loop and OOM-kill history |
 | v0.7 | Interactive TUI | Bubble Tea front-end over the existing report model — a third renderer, not a rewrite |
-| v0.8 | macOS app | Native SwiftUI menubar app: live health score in the menubar, resource lists, finding detail views. Consumes the v1 JSON contract |
+| ~~v0.8~~ | macOS app | **Landed early.** Native SwiftUI menubar app: colour-coded score in the menubar, findings with full explanations, resource tables, cleanup with confirmation, notifications on score drops. Consumes the v1 JSON contract. See [`app/macos`](../app/macos) |
 | v0.9 | VS Code extension | Findings in the Problems panel, Dockerfile/Compose diagnostics inline |
 | v1.0 | Stable API | `pkg/model` and the JSON schema frozen under semver |
 | v1.x | Optional AI layer | A strictly optional, opt-in explainer that consumes the JSON. The analysis itself stays AI-free forever |

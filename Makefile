@@ -135,8 +135,28 @@ lint: ## Run golangci-lint if it is installed
 snapshot: ## Build release artifacts locally without publishing
 	goreleaser release --snapshot --clean
 
+# --- macOS app ---------------------------------------------------------------
+
+.PHONY: app
+app: ## Build the macOS menubar app (needs Command Line Tools, not Xcode)
+	@cd app/macos && ./scripts/build-app.sh --release
+
+.PHONY: app-install
+app-install: ## Build and install DoctorDock.app into ~/Applications
+	@cd app/macos && ./scripts/build-app.sh --release --install
+	@echo "open ~/Applications/DoctorDock.app to run it"
+
+.PHONY: app-test
+app-test: ## Run the app's self-test: the whole Swift-to-Go bridge, headless
+	@cd app/macos && ./scripts/build-app.sh >/dev/null && \
+		./build/DoctorDock.app/Contents/MacOS/DoctorDock --selftest
+
+.PHONY: app-clean
+app-clean: ## Remove the app build output
+	rm -rf app/macos/.build app/macos/build
+
 .PHONY: clean
-clean: ## Remove build output
+clean: app-clean ## Remove build output
 	rm -rf $(BIN_DIR) dist coverage.out
 
 .PHONY: help
