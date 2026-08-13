@@ -147,8 +147,40 @@ the containerized case and prints the exact command to fix it.
 - [x] JSON output with `schema_version`
 - [x] Exit codes and `--fail-on`
 - [x] Unit tests that do not require a Docker daemon
-- [x] CI green on Linux / macOS / Windows
+- [ ] **CI green on Linux / macOS / Windows** — blocked, see below
 - [x] README
+
+## Known blocker: GitHub Actions
+
+Both workflows are registered and active, and `actionlint` reports no problems,
+but every run ends in `startup_failure` with no jobs created and no log. That is
+an account-level block rather than anything in the workflow files — GitHub
+Actions on a **private** repository consumes billed minutes, and the account
+currently cannot start a run.
+
+Two ways out:
+
+1. **Make the repository public.** Actions are free and unmetered for public
+   repositories, and this is an open-source project that is meant to be public
+   eventually anyway.
+2. **Set a spending limit** (or add a payment method) under GitHub billing
+   settings, keeping the repository private.
+
+Until one of those happens, the CI matrix has to be verified locally. The full
+equivalent:
+
+```bash
+make check          # gofmt, vet, build, test
+make test-race
+make test-integration
+make docs-check
+for t in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
+  GOOS=${t%/*} GOARCH=${t#*/} go build -o /dev/null ./... || echo "FAIL $t"
+done
+make snapshot       # the whole release pipeline, publishing nothing
+```
+
+All of the above passes as of this commit, on all six targets.
 
 ## Roadmap
 
