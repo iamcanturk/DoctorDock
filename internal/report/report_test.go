@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/iamcanturk/DoctorDock/internal/rules"
 	"github.com/iamcanturk/DoctorDock/pkg/model"
 )
 
@@ -254,5 +255,105 @@ func TestShouldColorOnNonTerminal(t *testing.T) {
 	t.Setenv("FORCE_COLOR", "")
 	if ShouldColor(&bytes.Buffer{}) {
 		t.Error("a non-file writer is never a terminal")
+	}
+}
+
+func TestRenderExplanationLongForm(t *testing.T) {
+	detail := RuleDetail{
+		ID:          "DD005",
+		Name:        "Docker socket exposed",
+		Severity:    model.SeverityCritical,
+		Category:    model.CategorySecurity,
+		Description: "short form",
+		HasLongForm: true,
+		Explanation: rules.Explanation{
+			What:     "The Docker socket is mounted.",
+			Why:      "It is equivalent to root on the host.",
+			Scenario: "An attacker starts a privileged container.",
+			Fixes: []rules.Fix{
+				{Title: "Remove the mount", Lang: "bash", Code: "docker run myimage"},
+			},
+			FalsePositives: "Portainer needs it.",
+			References:     []rules.Reference{{Title: "Docker docs", URL: "https://docs.docker.com/"}},
+		},
+	}
+
+	var buf bytes.Buffer
+	if err := RenderExplanation(&buf, detail, Options{}); err != nil {
+		t.Fatal(err)
+	}
+	out := buf.String()
+
+	for _, want := range []string{
+		"DD005", "Docker socket exposed", "CRITICAL", "security",
+		"WHAT IT LOOKS FOR", "WHY IT MATTERS", "WHAT GOES WRONG",
+		"HOW TO FIX IT", "Remove the mount", "docker run myimage",
+		"WHEN THIS IS FINE TO IGNORE", "Portainer needs it.",
+		// The suppression command has to be there: somebody reading this is
+		// often deciding whether to fix it or silence it.
+		"SUPPRESSING IT", "--ignore DD005",
+		"FURTHER READING", "https://docs.docker.com/",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("explanation output is missing %q", want)
+		}
+	}
+}
+
+// TestRenderExplanationFallsBackWithoutLongForm keeps a rule with no
+// explanation from producing an empty page.
+func TestRenderExplanationFallsBackWithoutLongForm(t *testing.T) {
+	var buf bytes.Buffer
+	err := RenderExplanation(&buf, RuleDetail{
+		ID:          "DD099",
+		Name:        "Some rule",
+		Severity:    model.SeverityLow,
+		Category:    model.CategoryCleanup,
+		Description: "The one-line description.",
+		HasLongForm: false,
+	}, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := buf.String()
+	if !strings.Contains(out, "The one-line description.") {
+		t.Errorf("the short description should be shown as a fallback:\n%s", out)
+	}
+	if strings.Contains(out, "HOW TO FIX IT") {
+		t.Error("sections with no content should not be printed")
+	}
+}
+
+// TestDashboardPointsAtExplain is the discoverability guarantee: a user
+// looking at "DD001" must be told how to find out what it means.
+func TestDashboardPointsAtExplain(t *testing.T) {
+	out := render(t, NewTerminal(Options{}), sampleReport())
+
+	if !strings.Contains(out, "doctordock explain DD005") {
+		t.Errorf("the dashboard should offer `explain` for the worst finding:\n%s", out)
+	}
+	if !strings.Contains(out, "doctordock cleanup") {
+		t.Error("the dashboard should mention cleanup")
+	}
+}
+
+// TestJargonIsGlossed covers the terms that mean nothing without the Docker
+// glossary.
+func TestJargonIsGlossed(t *testing.T) {
+	out := render(t, NewTerminal(Options{}), sampleReport())
+
+	for term, gloss := range map[string]string{
+		"Dangling":  "untagged",
+		"Anonymous": "unnamed",
+		"Custom":    "you created these",
+	} {
+		if !strings.Contains(out, term) {
+			t.Errorf("%q is missing from the dashboard", term)
+			continue
+		}
+		if !strings.Contains(out, gloss) {
+			t.Errorf("%q is shown without an explanation; expected %q nearby", term, gloss)
+		}
 	}
 }

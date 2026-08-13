@@ -61,11 +61,15 @@ rm -f /tmp/dd-go.mod.bak /tmp/dd-go.sum.bak
 
 bold "Generated documentation"
 
-if go run ./tools/gendocs >/dev/null 2>&1 && git diff --quiet docs/RULES.md 2>/dev/null; then
+# Compare the generator's output to the file on disk rather than to git HEAD,
+# so the check means "the committed catalogue is current" in a dirty tree too.
+cp docs/RULES.md /tmp/dd-rules.bak 2>/dev/null
+if go run ./tools/gendocs >/dev/null 2>&1 && diff -q /tmp/dd-rules.bak docs/RULES.md >/dev/null 2>&1; then
   ok "docs/RULES.md matches the rule registry"
 else
-  bad "docs/RULES.md is out of date — run 'make docs' and commit it"
+  bad "docs/RULES.md was out of date — it has been regenerated, commit the change"
 fi
+rm -f /tmp/dd-rules.bak
 
 bold "Build"
 

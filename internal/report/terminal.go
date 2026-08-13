@@ -80,7 +80,8 @@ func (t *TerminalRenderer) scoreLine(b *strings.Builder, r *model.Report) {
 	grade := t.c.dim(score.Grade(r.Score))
 
 	fmt.Fprintf(b, "  %s   %s   %s\n", label, value, grade)
-	fmt.Fprintf(b, "  %s\n", colour(t.scoreBar(r.Score)))
+	fmt.Fprintf(b, "  %s   %s\n", colour(t.scoreBar(r.Score)),
+		t.c.dim("100 = no findings"))
 	b.WriteString("\n")
 }
 
@@ -118,24 +119,28 @@ func (t *TerminalRenderer) resources(b *strings.Builder, r *model.Report) {
 		{"Unhealthy", fmt.Sprintf("%d", s.Containers.Unhealthy), ""},
 	}}
 
+	// The note column glosses the terms that are Docker jargon rather than
+	// plain English. Without it "Dangling 2" means nothing to someone who has
+	// not read the Docker glossary, and a number nobody understands is a
+	// number nobody acts on.
 	images := block{"IMAGES", []row{
 		{"Total", fmt.Sprintf("%d", s.Images.Total), model.FormatBytes(s.Images.TotalSize)},
-		{"Unused", fmt.Sprintf("%d", s.Images.Unused), model.FormatBytes(s.Images.ReclaimableSize)},
-		{"Dangling", fmt.Sprintf("%d", s.Images.Dangling), ""},
+		{"Unused", fmt.Sprintf("%d", s.Images.Unused), model.FormatBytes(s.Images.ReclaimableSize) + " reclaimable"},
+		{"Dangling", fmt.Sprintf("%d", s.Images.Dangling), "untagged leftovers"},
 		{"", "", ""},
 	}}
 
 	volumes := block{"VOLUMES", []row{
 		{"Total", fmt.Sprintf("%d", s.Volumes.Total), ""},
-		{"Unused", fmt.Sprintf("%d", s.Volumes.Unused), ""},
-		{"Anonymous", fmt.Sprintf("%d", s.Volumes.Anonymous), ""},
+		{"Unused", fmt.Sprintf("%d", s.Volumes.Unused), "nothing mounts them"},
+		{"Anonymous", fmt.Sprintf("%d", s.Volumes.Anonymous), "unnamed"},
 		{"", "", ""},
 	}}
 
 	networks := block{"NETWORKS", []row{
 		{"Total", fmt.Sprintf("%d", s.Networks.Total), ""},
-		{"Custom", fmt.Sprintf("%d", s.Networks.Custom), ""},
-		{"Unused", fmt.Sprintf("%d", s.Networks.Unused), ""},
+		{"Custom", fmt.Sprintf("%d", s.Networks.Custom), "you created these"},
+		{"Unused", fmt.Sprintf("%d", s.Networks.Unused), "nothing attached"},
 		{"", "", ""},
 	}}
 
@@ -152,7 +157,9 @@ type block struct {
 	rows  []row
 }
 
-const columnWidth = 36
+// columnWidth leaves room for the widest label + value + gloss in the left
+// column, keeping the full grid within 80 characters.
+const columnWidth = 40
 
 func (t *TerminalRenderer) grid(b *strings.Builder, left, right block) {
 	fmt.Fprintf(b, "  %s%s\n",
@@ -457,8 +464,16 @@ func (t *TerminalRenderer) nextSteps(b *strings.Builder, r *model.Report) {
 	}
 
 	b.WriteString("\n")
-	fmt.Fprintf(b, "  %s\n", t.c.dim("Run `doctordock scan --all` for every finding, "+
-		"or `--format json` for machine-readable output."))
+
+	// The first thing somebody wants after seeing "DD005" is to know what
+	// DD005 is, so that is the first thing offered.
+	worst := ordered[0].id
+	fmt.Fprintf(b, "  %s\n", t.c.dim(fmt.Sprintf(
+		"What does a finding mean?   %s", t.c.bold("doctordock explain "+worst))))
+	fmt.Fprintf(b, "  %s\n", t.c.dim(fmt.Sprintf(
+		"Reclaim disk space?         %s", t.c.bold("doctordock cleanup"))))
+	fmt.Fprintf(b, "  %s\n", t.c.dim(
+		"Every finding, not grouped? doctordock scan --all"))
 	b.WriteString("\n")
 }
 

@@ -41,6 +41,17 @@ ignore:
 Suppressed rules are listed in the JSON output under `skipped_rules`, so a
 reader can always tell "clean" apart from "not checked".
 
+## Understanding a rule
+
+This table is a summary. Any rule explains itself in full:
+
+```bash
+doctordock explain DD005
+```
+
+That covers what it looks for, why it matters, a worked scenario, fixes you can
+copy, when it is fine to ignore, and links to the upstream documentation.
+
 ## Security
 
 Weaknesses an attacker could exploit.

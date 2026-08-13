@@ -491,3 +491,64 @@ func TestOptionsNormalize(t *testing.T) {
 		t.Error("Normalize did not fill the unset field")
 	}
 }
+
+// TestEveryRuleHasAnExplanation is the drift guard.
+//
+// Explanations live in a table rather than on the Rule interface, so that
+// adding a rule stays a two-line change. The cost of that choice is that the
+// table can fall behind the registry — this is what stops it.
+func TestEveryRuleHasAnExplanation(t *testing.T) {
+	for _, r := range All() {
+		e, ok := Explain(r.ID())
+		if !ok {
+			t.Errorf("%s (%s) has no explanation — add one to internal/rules/explain.go",
+				r.ID(), r.Name())
+			continue
+		}
+
+		if strings.TrimSpace(e.What) == "" {
+			t.Errorf("%s: What is empty", r.ID())
+		}
+		if strings.TrimSpace(e.Why) == "" {
+			t.Errorf("%s: Why is empty", r.ID())
+		}
+
+		// An explanation without a fix is a complaint. Every rule that a user
+		// can act on has to say how.
+		if len(e.Fixes) == 0 {
+			t.Errorf("%s: no fixes — an explanation with no remedy is not actionable", r.ID())
+		}
+		for i, fix := range e.Fixes {
+			if strings.TrimSpace(fix.Title) == "" || strings.TrimSpace(fix.Code) == "" {
+				t.Errorf("%s: fix %d is incomplete", r.ID(), i)
+			}
+			switch fix.Lang {
+			case "bash", "dockerfile", "yaml":
+			default:
+				t.Errorf("%s: fix %d has unknown language %q", r.ID(), i, fix.Lang)
+			}
+		}
+
+		for _, ref := range e.References {
+			if !strings.HasPrefix(ref.URL, "https://") {
+				t.Errorf("%s: reference %q is not an https URL", r.ID(), ref.Title)
+			}
+		}
+	}
+}
+
+// TestExplanationsMatchRegisteredRules catches the other direction: an
+// explanation left behind after its rule was removed.
+func TestExplanationsMatchRegisteredRules(t *testing.T) {
+	for id := range explanations {
+		if _, ok := ByID(id); !ok {
+			t.Errorf("explanation for %s has no matching rule", id)
+		}
+	}
+}
+
+func TestExplainUnknownRule(t *testing.T) {
+	if _, ok := Explain("DD999"); ok {
+		t.Error("an unknown rule should not resolve to an explanation")
+	}
+}

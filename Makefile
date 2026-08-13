@@ -103,9 +103,12 @@ docs: ## Regenerate docs/RULES.md from the rule registry
 
 .PHONY: docs-check
 docs-check: ## Fail if docs/RULES.md is out of date
+	@cp docs/RULES.md /tmp/dd-rules.bak
 	@go run ./tools/gendocs
-	@git diff --exit-code docs/RULES.md \
-		|| (echo "docs/RULES.md is out of date; run 'make docs'"; exit 1)
+	@diff -q /tmp/dd-rules.bak docs/RULES.md >/dev/null \
+		|| (echo "docs/RULES.md was out of date; it has been regenerated — commit it"; \
+		    rm -f /tmp/dd-rules.bak; exit 1)
+	@rm -f /tmp/dd-rules.bak
 
 .PHONY: cross
 cross: ## Build every release target, to catch platform-specific breakage

@@ -139,6 +139,7 @@ doctordock cleanup          # what could be reclaimed — removes nothing
 doctordock cleanup --apply  # actually remove it
 doctordock report -o r.json # complete report artifact
 doctordock rules            # the rule catalogue
+doctordock explain DD005    # what a rule means, why, and how to fix it
 doctordock version --check-docker
 ```
 
@@ -157,8 +158,18 @@ doctordock version --check-docker
 
 ## Security checks
 
-18 rules across five categories. The full catalogue with descriptions is in
-[docs/RULES.md](docs/RULES.md); here are the ones that matter most:
+18 rules across five categories. The full catalogue is in
+[docs/RULES.md](docs/RULES.md), and any rule explains itself in full:
+
+```bash
+doctordock explain DD005
+```
+
+That prints what the rule looks for, the concrete consequence, a worked attack
+scenario where there is one, copy-pasteable fixes, an honest note on when the
+finding is fine to ignore, and links to the authoritative documentation.
+
+Here are the rules that matter most:
 
 | ID | Severity | Check |
 |---|---|---|
