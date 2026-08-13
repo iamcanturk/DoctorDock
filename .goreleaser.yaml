@@ -1,0 +1,141 @@
+version: 2
+
+project_name: doctordock
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: doctordock
+    main: ./cmd/doctordock
+    binary: doctordock
+    env:
+      # A static binary is the whole point: users must not need a Go toolchain,
+      # a libc version or anything else installed.
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      # -s -w strip symbols and DWARF data. The Docker SDK makes the binary
+      # large enough that this is worth several megabytes.
+      - -s -w
+      - -X main.version={{ .Version }}
+      - -X main.commit={{ .ShortCommit }}
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+      - docs/RULES.md
+
+checksum:
+  name_template: checksums.txt
+
+sboms:
+  - artifacts: archive
+
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: Rules
+      regexp: '^.*?(feat|fix)\(rules\).*$'
+      order: 1
+    - title: Fixes
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 2
+    - title: Other
+      order: 99
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - Merge pull request
+
+# Homebrew casks are macOS-only. Linux users install with `go install`, the
+# container image, npx, or the release archive — see docs/DISTRIBUTION.md.
+homebrew_casks:
+  - name: doctordock
+    binaries:
+      - doctordock
+    repository:
+      owner: iamcanturk
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://github.com/iamcanturk/DoctorDock
+    description: Local-first Docker diagnostics — security, configuration and cleanup findings
+    license: MIT
+    # `ddock` is the short alias: the same binary reachable under a second name.
+    custom_block: |
+      binary "doctordock", target: "ddock"
+    hooks:
+      post:
+        # The binaries are not notarized, so Gatekeeper would quarantine them
+        # and macOS would refuse to run the tool with an unhelpful dialog.
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/doctordock"]
+          end
+
+scoops:
+  - name: doctordock
+    repository:
+      owner: iamcanturk
+      name: scoop-bucket
+      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
+    homepage: https://github.com/iamcanturk/DoctorDock
+    description: Local-first Docker diagnostics — security, configuration and cleanup findings
+    license: MIT
+
+dockers_v2:
+  - id: doctordock
+    dockerfile: Dockerfile.release
+    images:
+      - ghcr.io/iamcanturk/doctordock
+    tags:
+      - "{{ .Version }}"
+      - latest
+    platforms:
+      - linux/amd64
+      - linux/arm64
+    labels:
+      org.opencontainers.image.title: "{{ .ProjectName }}"
+      org.opencontainers.image.description: Local-first Docker diagnostics
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"
+      org.opencontainers.image.source: https://github.com/iamcanturk/DoctorDock
+      org.opencontainers.image.licenses: MIT
+
+release:
+  draft: false
+  prerelease: auto
+  footer: |
+    ## Install
+
+    ```bash
+    brew install iamcanturk/tap/doctordock     # macOS
+    scoop install doctordock                    # Windows
+    npx doctordock                              # no install, any platform
+    go install github.com/iamcanturk/DoctorDock/cmd/doctordock@{{ .Tag }}
+    ```
+
+    Or run it without installing anything:
+
+    ```bash
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro \
+      ghcr.io/iamcanturk/doctordock:{{ .Version }}
+    ```

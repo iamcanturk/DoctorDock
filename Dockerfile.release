@@ -1,0 +1,21 @@
+# Image used by GoReleaser: the binary is already built, so this only packages it.
+# For a from-source build see Dockerfile.
+FROM alpine:3.21
+
+RUN apk add --no-cache ca-certificates \
+    && adduser -D -u 10001 doctordock
+
+COPY doctordock /usr/local/bin/doctordock
+RUN ln -s /usr/local/bin/doctordock /usr/local/bin/ddock
+
+# DoctorDock only reads from the Docker API, so it does not need root inside
+# the container. Mounting the socket read-only is enough:
+#
+#   docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro \
+#     ghcr.io/iamcanturk/doctordock
+#
+# On most hosts the socket is group-owned by `docker`, so the container may
+# need `--group-add $(stat -c '%g' /var/run/docker.sock)` to read it.
+USER doctordock
+
+ENTRYPOINT ["/usr/local/bin/doctordock"]

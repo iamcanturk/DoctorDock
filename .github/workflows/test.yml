@@ -1,0 +1,133 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    # DoctorDock ships for macOS, Linux and Windows, so all three are tested.
+    # The unit tests deliberately need no Docker daemon, which is what makes
+    # this matrix affordable.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Verify formatting
+        if: runner.os == 'Linux'
+        run: |
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            echo "These files are not gofmt-formatted:"
+            echo "$files"
+            exit 1
+          fi
+
+      - name: Verify docs/RULES.md is current
+        # The catalogue is generated from the registry, so a new rule with no
+        # regenerated docs is caught here rather than shipping stale severities.
+        if: runner.os == 'Linux'
+        run: |
+          go run ./tools/gendocs
+          git diff --exit-code docs/RULES.md
+
+      - name: Verify go.mod is tidy
+        if: runner.os == 'Linux'
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - run: go vet ./...
+
+      - run: go build ./...
+
+      - run: go test ./...
+
+      - name: Test with the race detector
+        if: runner.os == 'Linux'
+        run: go test -race ./...
+
+  integration:
+    name: integration (docker)
+    # Linux runners have a working Docker daemon; macOS and Windows runners do
+    # not, which is exactly why the daemon-dependent tests are separated out.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Create resources worth finding
+        # A bare runner has almost nothing running, so the scan would exercise
+        # very little. These give the rules something real to match, including
+        # a deliberately bad container.
+        run: |
+          docker network create dd-test-net
+          docker volume create dd-test-volume
+          docker run -d --name dd-good \
+            --user 1000:1000 \
+            --restart unless-stopped \
+            --memory 128m \
+            --health-cmd 'true' --health-interval 5s \
+            --network dd-test-net \
+            alpine:3.20 sleep 300
+          docker run -d --name dd-bad \
+            --privileged \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v /etc:/host-etc \
+            -p 0.0.0.0:6379:6379 \
+            alpine:3.20 sleep 300
+          docker pull alpine:3.19
+
+      - run: go test -tags integration -v ./tests/integration/...
+
+      - name: Scan the runner
+        run: go run ./cmd/doctordock --no-color
+
+      - name: Verify the security rules fired
+        # If DoctorDock cannot find a privileged container with the Docker
+        # socket mounted, the whole tool is broken. --fail-on critical must
+        # exit 3 here; anything else is a regression.
+        run: |
+          go run ./cmd/doctordock scan --fail-on critical --no-color > /dev/null && code=0 || code=$?
+          if [ "$code" != "3" ]; then
+            echo "expected exit code 3 for the deliberately insecure container, got $code"
+            exit 1
+          fi
+
+      - name: Verify the JSON output is well-formed
+        run: |
+          go run ./cmd/doctordock report --format json > report.json
+          jq -e '.schema_version and .score >= 0 and (.findings | length) > 0' report.json
+          jq -e '[.findings[] | select(.id == "DD005")] | length > 0' report.json
+
+      - name: Clean up
+        if: always()
+        run: |
+          docker rm -f dd-good dd-bad 2>/dev/null || true
+          docker network rm dd-test-net 2>/dev/null || true
+          docker volume rm dd-test-volume 2>/dev/null || true

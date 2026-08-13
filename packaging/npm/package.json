@@ -1,0 +1,49 @@
+{
+  "name": "doctordock",
+  "version": "0.0.0",
+  "description": "Local-first Docker diagnostics — find security problems, misconfigurations and reclaimable resources in your Docker environment. No AI, no network calls, no telemetry.",
+  "keywords": [
+    "docker",
+    "security",
+    "devops",
+    "cli",
+    "diagnostics",
+    "container-security",
+    "docker-security",
+    "audit"
+  ],
+  "homepage": "https://github.com/iamcanturk/DoctorDock",
+  "bugs": "https://github.com/iamcanturk/DoctorDock/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamcanturk/DoctorDock.git",
+    "directory": "packaging/npm"
+  },
+  "license": "MIT",
+  "author": "Yusuf Can Türk",
+  "type": "module",
+  "bin": {
+    "doctordock": "bin/doctordock.js",
+    "ddock": "bin/doctordock.js"
+  },
+  "files": [
+    "bin/doctordock.js",
+    "install.js",
+    "README.md"
+  ],
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}

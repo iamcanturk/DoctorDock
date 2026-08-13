@@ -32,6 +32,6 @@ Go, with Cobra for command routing.
 
 ## Consequences
 
-- Binary size lands around 15–20 MB because of the Docker SDK. Acceptable for a developer
-  tool; noted in [ADR-0002](0002-docker-sdk-over-raw-http.md).
+- The binary lands at roughly 10–11 MB, most of it the Docker SDK. Acceptable for a
+  developer tool; see [ADR-0002](0002-docker-sdk-over-raw-http.md).
 - A future Bubble Tea TUI (v0.7) stays in-language.

@@ -10,6 +10,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"runtime"
 	"sync"
 
@@ -66,7 +67,16 @@ func (e *ConnectionError) Error() string {
 func (e *ConnectionError) Unwrap() error { return e.Err }
 
 // Hint returns actionable advice for a user whose daemon is unreachable.
+//
+// The advice is specific to how DoctorDock is running, because the fixes have
+// nothing in common: a developer on a Mac needs Docker Desktop started, while
+// the same failure inside a container almost always means the socket is not
+// mounted or is not readable by the non-root user the image runs as.
 func (e *ConnectionError) Hint() string {
+	if hint, ok := containerHint(); ok {
+		return hint
+	}
+
 	switch runtime.GOOS {
 	case "darwin":
 		return "Is Docker Desktop (or Colima/OrbStack/Rancher Desktop) running?\n" +
@@ -173,4 +183,42 @@ func forEach(n int, fn func(i int)) {
 		}(i)
 	}
 	wg.Wait()
+}
+
+// defaultSocketPath is where the Docker socket lives on Linux, which is the
+// only platform the container image runs on.
+const defaultSocketPath = "/var/run/docker.sock"
+
+// containerHint returns advice tailored to running inside a container, and
+// false when DoctorDock is not containerized.
+func containerHint() (string, bool) {
+	if !inContainer() {
+		return "", false
+	}
+
+	if _, err := os.Stat(defaultSocketPath); err != nil {
+		return "DoctorDock is running inside a container, but the Docker socket is not mounted.\n" +
+			"Mount it read-only:\n" +
+			"  docker run --rm -v " + defaultSocketPath + ":" + defaultSocketPath + ":ro \\\n" +
+			"    ghcr.io/iamcanturk/doctordock", true
+	}
+
+	// The socket exists but could not be used. The image runs as a non-root
+	// user by design, so the usual cause is that the socket's group is not one
+	// of ours.
+	return "DoctorDock is running inside a container as a non-root user and cannot read the\n" +
+		"Docker socket. Grant it the socket's group:\n" +
+		"  docker run --rm --group-add \"$(stat -c '%g' " + defaultSocketPath + ")\" \\\n" +
+		"    -v " + defaultSocketPath + ":" + defaultSocketPath + ":ro \\\n" +
+		"    ghcr.io/iamcanturk/doctordock\n" +
+		"On Docker Desktop the socket is owned by root, so use --group-add 0.", true
+}
+
+// inContainer reports whether this process is running inside a container.
+//
+// /.dockerenv is created by the Docker daemon in every container it starts.
+// The check is best-effort: a false negative only costs a less specific hint.
+func inContainer() bool {
+	_, err := os.Stat("/.dockerenv")
+	return err == nil
 }

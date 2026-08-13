@@ -60,6 +60,17 @@ fmt-check: ## Fail if anything is unformatted
 	@files=$$(gofmt -l . 2>/dev/null); \
 	if [ -n "$$files" ]; then echo "unformatted files:"; echo "$$files"; exit 1; fi
 
+.PHONY: docs
+docs: ## Regenerate docs/RULES.md from the rule registry
+	go run ./tools/gendocs
+	@echo "regenerated docs/RULES.md"
+
+.PHONY: docs-check
+docs-check: ## Fail if docs/RULES.md is out of date
+	@go run ./tools/gendocs
+	@git diff --exit-code docs/RULES.md \
+		|| (echo "docs/RULES.md is out of date; run 'make docs'"; exit 1)
+
 .PHONY: check
 check: fmt-check vet build test ## Everything CI runs
 

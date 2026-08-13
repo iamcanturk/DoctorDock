@@ -32,7 +32,10 @@ the benefit of a smaller binary. That is a bad trade for a developer tool.
 
 ## Consequences
 
-- Binary lands around 15–20 MB.
+- The binary lands at roughly 10–11 MB (4 MB compressed), which is smaller than the 15–20 MB
+  this decision was originally costed at. Only the client half of the SDK is reachable, so the
+  linker drops most of it.
 - SDK types are confined to `internal/docker`. They are converted to `pkg/model` types at
   the boundary and never escape, so an SDK upgrade touches exactly one package.
-- Builds use `-trimpath -ldflags="-s -w"` to trim what can be trimmed.
+- Builds use `-trimpath -ldflags="-s -w"` and `CGO_ENABLED=0`, which is also what makes the
+  binary static.

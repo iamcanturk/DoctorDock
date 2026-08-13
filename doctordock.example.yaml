@@ -1,0 +1,47 @@
+# DoctorDock configuration — entirely optional.
+#
+# DoctorDock works with no configuration at all. This file exists for the two
+# things a team genuinely needs to share: which rules to suppress, and where the
+# thresholds sit — so that they live in version control rather than in
+# everyone's shell history.
+#
+# Copy this to `doctordock.yaml` next to your code. Search order, nearest first:
+#
+#   ./doctordock.yaml
+#   ./.doctordock/doctordock.yaml
+#   ~/.config/doctordock/doctordock.yaml   (or the OS equivalent)
+#   ~/.doctordock.yaml
+#
+# A project-local file wins, so a repository can pin its own settings for
+# everyone who works on it.
+
+# Rules to skip entirely.
+#
+# An unknown ID is an error, not a silent no-op: a suppression for "DD05" looks
+# like it works and would otherwise leave the rule enabled forever.
+#
+# Suppressed rules appear in the JSON output under `skipped_rules`, so a reader
+# can always tell "clean" apart from "not checked".
+#
+# Run `doctordock rules` for the full catalogue.
+ignore:
+  # - DD007   # no healthcheck — these containers are supervised externally
+  # - DD011   # :latest tags — acceptable in this development environment
+  # - DD015   # unused images — this machine is a build host
+
+# The default --fail-on threshold, used when the flag is not given.
+# One of: info, low, medium, high, critical, none.
+#
+# "none" (the default) means DoctorDock always exits 0. CI opts in:
+#   doctordock scan --fail-on high
+fail_on: none
+
+thresholds:
+  # DD016 reports an image at or above this size. Default: 1500000000 (1.5 GB).
+  # Below that, large images are common enough in normal use — JDK, CUDA, full
+  # Node toolchains — that flagging them is noise.
+  large_image_bytes: 1500000000
+
+  # DD013 reports a container at or above this restart count. Default: 5, which
+  # is where Docker's own `on-failure` policy gives up.
+  restart_loop: 5
