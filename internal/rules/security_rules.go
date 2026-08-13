@@ -39,9 +39,15 @@ func (r RootUser) Check(_ context.Context, t Target) []model.Finding {
 		f.Recommendation = "Add a non-root USER to the image, or start the container with " +
 			"`--user 1000:1000` (compose: `user: \"1000:1000\"`). For official images that need " +
 			"root to initialise, check whether the image already supports a non-root mode."
+		// An unset effective user means the image set no USER either, which
+		// resolves to root — report what it actually is, not a blank.
+		effective := strings.TrimSpace(c.EffectiveUser)
+		if effective == "" {
+			effective = "root"
+		}
 		f.Details = map[string]string{
 			"configured_user": orNone(c.User),
-			"effective_user":  c.EffectiveUser,
+			"effective_user":  effective,
 			"image":           c.Image,
 		}
 		out = append(out, f)
