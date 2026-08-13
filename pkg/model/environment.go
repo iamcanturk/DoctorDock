@@ -133,7 +133,9 @@ func Summarize(env *Environment, findings []Finding) Summary {
 			// exited, dead, removing — all "not running, not transitioning".
 			s.Containers.Stopped++
 		}
-		if c.IsUnhealthy() {
+		// A stopped container keeps its last health status, so counting those
+		// would report containers that were unhealthy days ago as unhealthy now.
+		if c.IsRunning() && c.IsUnhealthy() {
 			s.Containers.Unhealthy++
 		}
 	}

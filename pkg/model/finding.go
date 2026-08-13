@@ -10,6 +10,11 @@ type Finding struct {
 	// ID is the stable rule identifier, e.g. "DD005". IDs are never reused.
 	ID string `json:"id"`
 
+	// Rule is the human-readable name of the rule that produced this finding,
+	// e.g. "Docker socket exposed". Clients group by it; unlike Title it is
+	// identical across every finding from the same rule.
+	Rule string `json:"rule"`
+
 	// Severity is how much this should worry the operator.
 	Severity Severity `json:"severity"`
 
