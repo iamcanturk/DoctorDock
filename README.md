@@ -11,7 +11,7 @@ environment — in under a second, entirely offline.
 [![Go Reference](https://pkg.go.dev/badge/github.com/iamcanturk/DoctorDock.svg)](https://pkg.go.dev/github.com/iamcanturk/DoctorDock)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-**No AI · No network calls · No telemetry · No account · Read-only**
+**No AI · No network calls · No telemetry · No account · Nothing deleted without `--apply`**
 
 </div>
 
@@ -82,8 +82,10 @@ Design constraints, in order:
 - **Secrets stay put.** Container environment variables are read as **key names
   only** — values never enter memory in a form that could reach a report.
   ([why](docs/adr/0005-no-secret-collection.md))
-- **Read-only.** v0.1 never modifies your Docker environment. It reports unused
-  volumes; it will not delete one.
+- **Nothing disappears by accident.** `doctordock cleanup` is a dry run unless
+  you pass `--apply`, and no flag except `--volumes` can ever select a volume —
+  not even `--all`. Everything else can be recreated; a volume's contents
+  cannot. ([why](docs/adr/0006-cleanup-safety-model.md))
 - **Fast.** A full scan of 26 containers, 29 images, 29 volumes and 12 networks
   takes about 550 ms.
 
@@ -133,6 +135,8 @@ doctordock containers       # container table + the findings about them
 doctordock images           # image table, sizes, what references what
 doctordock volumes          # volume table, including anonymous ones
 doctordock networks         # network table and attachments
+doctordock cleanup          # what could be reclaimed — removes nothing
+doctordock cleanup --apply  # actually remove it
 doctordock report -o r.json # complete report artifact
 doctordock rules            # the rule catalogue
 doctordock version --check-docker
@@ -144,7 +148,7 @@ doctordock version --check-docker
 |---|---|
 | `--format json` | Machine-readable output ([schema](docs/JSON_SCHEMA.md)) |
 | `--fail-on <level>` | Exit non-zero at this severity or worse |
-| `--all` | Do not group repeated findings |
+| `--all` | Do not group repeated findings (on `cleanup`: every target except volumes) |
 | `--ignore DD007,DD015` | Skip rules |
 | `--only DD001,DD005` | Run only these rules |
 | `--no-color` | Disable ANSI colour (also honours `NO_COLOR`) |
@@ -182,6 +186,49 @@ use [Trivy](https://github.com/aquasecurity/trivy) or
 [Grype](https://github.com/anchore/grype), which need a vulnerability database
 and therefore a network. DoctorDock covers the configuration layer those tools
 do not look at, and stays offline as a result.
+
+## Cleanup
+
+DoctorDock finds reclaimable resources; `cleanup` removes them. Running it on
+its own **never deletes anything** — it prints what it would remove and what
+that would free.
+
+```bash
+doctordock cleanup                          # dry run: dangling images, unused networks
+doctordock cleanup --apply                  # remove them
+doctordock cleanup --all                    # also stopped containers and unused images
+doctordock cleanup --all --keep-since 24h --apply
+doctordock cleanup --volumes                # review unused volumes (still a dry run)
+```
+
+Every item is labelled with what removing it could cost:
+
+| Risk | Meaning | Covers |
+|---|---|---|
+| `safe` | Docker's own prune would remove it | dangling images, unused networks |
+| `review` | Removable, but you may have wanted it | unused images, stopped containers |
+| `data-loss` | May destroy the only copy of real data | unused volumes |
+
+Four rules make this safe to run:
+
+1. **`--apply` is required.** The verb and the effect are separate; typing the
+   obvious command and hitting enter cannot lose data.
+2. **`--all` never includes volumes.** It covers containers, images and
+   networks. Reaching a volume takes `--volumes`, every time. A plan containing
+   volumes asks you to type `delete`, not `y`.
+3. **Nothing cascades.** Containers are removed without `-v`, so a container
+   never takes anonymous volumes with it — that would route around the
+   `--volumes` gate entirely.
+4. **Nothing is forced.** If something started using a resource between the scan
+   and the apply, the daemon refuses and DoctorDock reports the refusal rather
+   than overriding it.
+
+`--keep-since 24h` protects anything created inside the window, so an image you
+built this morning survives.
+
+Cleanup also accounts for ordering: an image referenced only by a stopped
+container that is *also* being removed counts as unused, so you never have to
+run the command twice for it to converge.
 
 ## CI/CD usage
 
@@ -277,6 +324,7 @@ Design decisions are recorded as ADRs:
 - [ADR-0003](docs/adr/0003-whole-environment-rule-target.md) — rules receive the whole environment
 - [ADR-0004](docs/adr/0004-json-as-the-gui-contract.md) — JSON as the GUI contract
 - [ADR-0005](docs/adr/0005-no-secret-collection.md) — environment variable values are never read
+- [ADR-0006](docs/adr/0006-cleanup-safety-model.md) — cleanup is opt-in, staged by risk, and never cascades
 
 More: [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [JSON_SCHEMA.md](docs/JSON_SCHEMA.md) · [SCORING.md](docs/SCORING.md) · [ROADMAP.md](docs/ROADMAP.md)
 
@@ -291,6 +339,7 @@ make build && ./bin/doctordock
 ```bash
 make check              # fmt + vet + build + test — what CI runs
 make test-integration   # requires a Docker daemon
+make test-e2e           # all 18 rules against a real daemon, creates and removes ddtest-*
 make docs               # regenerate docs/RULES.md from the registry
 make help               # every target
 ```

@@ -105,11 +105,17 @@ jobs:
 
       - run: go test -tags integration -v ./tests/integration/...
 
-      - name: Rule coverage against a real daemon
+      - name: Rule coverage and cleanup against a real daemon
         # Unit tests prove each rule matches a fixture. This stands up an
         # environment that is broken in eighteen specific ways and asserts that
         # all eighteen are found, which is the only thing that proves the whole
         # chain from the Engine API to the JSON.
+        #
+        # The destructive `cleanup --apply` check only runs here. A runner is
+        # disposable; a developer's machine is not, so the script refuses to run
+        # it without this variable.
+        env:
+          DOCTORDOCK_E2E_ALLOW_APPLY: "1"
         run: ./tests/e2e/run.sh
 
       - name: Scan the runner

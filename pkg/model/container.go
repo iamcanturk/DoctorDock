@@ -157,10 +157,14 @@ type Mount struct {
 // IsBind reports whether the mount maps a host path directly into the container.
 func (m Mount) IsBind() bool { return m.Type == "bind" }
 
-func shortID(id string) string {
+// ShortID returns the 12-character identifier form Docker displays, with any
+// "sha256:" prefix removed.
+func ShortID(id string) string {
 	id = strings.TrimPrefix(id, "sha256:")
 	if len(id) > 12 {
 		return id[:12]
 	}
 	return id
 }
+
+func shortID(id string) string { return ShortID(id) }

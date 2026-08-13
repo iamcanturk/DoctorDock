@@ -135,6 +135,7 @@ func newRootCommand(g *globals, version, commit string) *cobra.Command {
 		newVolumesCommand(g),
 		newNetworksCommand(g),
 		newReportCommand(g),
+		newCleanupCommand(g),
 		newRulesCommand(g),
 		newVersionCommand(g, version, commit),
 	)

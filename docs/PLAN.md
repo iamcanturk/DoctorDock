@@ -9,7 +9,12 @@ DoctorDock is a **local-first, AI-free, zero-telemetry** Docker diagnostics CLI.
 `doctordock` prints a readable health report of the local Docker environment: resource
 counts, a health score, security findings, and optimization suggestions.
 
-Non-goals for v0.1: AI, CVE databases, automatic cleanup, GUI, telemetry, cloud.
+Non-goals for v0.1: AI, CVE databases, GUI, telemetry, cloud.
+
+Cleanup was originally a non-goal and is now in scope, under the constraints in
+[ADR-0006](adr/0006-cleanup-safety-model.md). Reporting several gigabytes of reclaimable
+disk and then telling the user to go run `docker image prune` themselves is a worse
+product than doing it for them, carefully.
 
 ## Naming
 
@@ -30,7 +35,9 @@ Non-goals for v0.1: AI, CVE databases, automatic cleanup, GUI, telemetry, cloud.
 4. Cross-platform: macOS, Linux, Windows. Single static binary.
 5. Environment **variable values are never read** — only key names, and only for metadata.
    See [ADR-0005](adr/0005-no-secret-collection.md).
-6. Read-only by default. v0.1 never mutates the Docker environment.
+6. Nothing is removed without `--apply`, and no flag except `--volumes` may select a
+   volume. Removal lives on a separate interface from the read path, so a scan
+   structurally cannot delete anything. See [ADR-0006](adr/0006-cleanup-safety-model.md).
 7. No unnecessary abstraction. Interfaces exist where they are needed for testing or for a
    known future consumer — nowhere else.
 
@@ -64,6 +71,7 @@ Non-goals for v0.1: AI, CVE databases, automatic cleanup, GUI, telemetry, cloud.
 | 24 | README + docs | ✅ done |
 | 25 | Generated rule catalogue (`make docs`) | ✅ done |
 | 26 | End-to-end rule coverage against a real daemon (`make test-e2e`) | ✅ done |
+| 27 | `doctordock cleanup` — dry run by default, staged by risk | ✅ done |
 
 ## Architecture boundary that matters most
 

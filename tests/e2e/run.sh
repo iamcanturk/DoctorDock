@@ -263,6 +263,100 @@ log "Exit codes"
 "$BINARY" scan --ignore NOPE >/dev/null 2>&1; code=$?
 [ "$code" -eq 10 ] && ok "a bad flag exits 10, not a findings code" || bad "bad flag exited $code, want 10"
 
+log "Cleanup planning (dry run — removes nothing)"
+
+# A dry run must never delete. This is the property everything else rests on,
+# so it is checked by counting resources before and after.
+before_containers=$(docker ps -aq | wc -l | tr -d ' ')
+before_volumes=$(docker volume ls -q | wc -l | tr -d ' ')
+before_networks=$(docker network ls -q | wc -l | tr -d ' ')
+
+"$BINARY" cleanup --all --volumes --format json > "$WORKDIR/plan.json" 2>/dev/null
+
+after_containers=$(docker ps -aq | wc -l | tr -d ' ')
+after_volumes=$(docker volume ls -q | wc -l | tr -d ' ')
+after_networks=$(docker network ls -q | wc -l | tr -d ' ')
+
+if [ "$before_containers" = "$after_containers" ] && \
+   [ "$before_volumes" = "$after_volumes" ] && \
+   [ "$before_networks" = "$after_networks" ]; then
+  ok "a dry run removed nothing"
+else
+  bad "a dry run changed the environment (containers $before_containers→$after_containers, volumes $before_volumes→$after_volumes, networks $before_networks→$after_networks)"
+fi
+
+jq -e '.applied == false' "$WORKDIR/plan.json" >/dev/null \
+  && ok "the plan is marked as not applied" \
+  || bad "a dry-run plan claims applied=true"
+
+planned() {
+  jq -r --arg k "$1" --arg n "$2" \
+    '[.items[] | select(.resource == $k and .name == $n)] | length' "$WORKDIR/plan.json"
+}
+
+[ "$(planned network "${PREFIX}-unused-net")" -gt 0 ] \
+  && ok "the unused network is planned" || bad "the unused network was not planned"
+[ "$(planned volume "${PREFIX}-orphan-volume")" -gt 0 ] \
+  && ok "the orphan volume is planned" || bad "the orphan volume was not planned"
+
+# The predefined networks must never appear in a plan.
+builtin_planned=$(jq -r '[.items[] | select(.resource == "network" and (.name | IN("bridge","host","none","ingress")))] | length' "$WORKDIR/plan.json")
+[ "$builtin_planned" -eq 0 ] && ok "predefined networks are never planned" \
+                             || bad "a predefined network was planned for removal"
+
+# Running containers and everything they hold must never appear.
+running_planned=$(jq -r --arg n "${PREFIX}-good" \
+  '[.items[] | select(.name == $n)] | length' "$WORKDIR/plan.json")
+[ "$running_planned" -eq 0 ] && ok "running containers are never planned" \
+                             || bad "a running container was planned for removal"
+
+# Volumes are the only data-loss risk, and nothing else may claim that level.
+mislabelled=$(jq -r '[.items[] | select(.risk == "data-loss" and .resource != "volume")] | length' "$WORKDIR/plan.json")
+[ "$mislabelled" -eq 0 ] && ok "only volumes carry the data-loss risk level" \
+                         || bad "a non-volume item was labelled data-loss"
+
+# --all without --volumes must not reach a volume.
+"$BINARY" cleanup --all --format json > "$WORKDIR/plan-all.json" 2>/dev/null
+vols=$(jq -r '[.items[] | select(.resource == "volume")] | length' "$WORKDIR/plan-all.json")
+[ "$vols" -eq 0 ] && ok "--all does not select volumes" \
+                  || bad "--all planned $vols volume(s) without --volumes"
+
+# --keep-since must protect what this test just created. It says nothing about
+# resources that were already on the machine, which are legitimately older than
+# the window and stay in the plan.
+"$BINARY" cleanup --all --volumes --keep-since 24h --format json > "$WORKDIR/plan-recent.json" 2>/dev/null
+recent=$(jq -r --arg p "$PREFIX" \
+  '[.items[] | select(.name | startswith($p))] | length' "$WORKDIR/plan-recent.json")
+[ "$recent" -eq 0 ] && ok "--keep-since 24h protects everything created by this test" \
+                    || bad "--keep-since 24h still planned $recent resource(s) created minutes ago"
+
+# Applying really does delete, so it only runs where the environment is
+# disposable. CI sets this; a developer's machine does not.
+if [ "${DOCTORDOCK_E2E_ALLOW_APPLY:-}" = "1" ]; then
+  log "Cleanup apply (destructive — enabled by DOCTORDOCK_E2E_ALLOW_APPLY)"
+
+  "$BINARY" cleanup --networks --apply --yes --format json > "$WORKDIR/applied.json" 2>/dev/null
+
+  jq -e '.applied == true' "$WORKDIR/applied.json" >/dev/null \
+    && ok "the applied plan is marked as applied" || bad "an applied plan reports applied=false"
+
+  if docker network inspect "${PREFIX}-unused-net" >/dev/null 2>&1; then
+    bad "--apply did not remove the unused network"
+  else
+    ok "--apply removed the unused network"
+  fi
+
+  # The volume must survive: --networks does not select it, and neither would
+  # --all.
+  if docker volume inspect "${PREFIX}-orphan-volume" >/dev/null 2>&1; then
+    ok "the orphan volume survived a cleanup that did not ask for volumes"
+  else
+    bad "a cleanup without --volumes removed a volume"
+  fi
+else
+  info "skipping the destructive apply test (set DOCTORDOCK_E2E_ALLOW_APPLY=1 to run it)"
+fi
+
 log "Privacy"
 
 # The strongest form of this check: no value from a real container's

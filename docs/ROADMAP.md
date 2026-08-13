@@ -5,7 +5,7 @@ direction, not a promise.
 
 | Version | Theme | Contents |
 |---|---|---|
-| **v0.1** | Docker diagnostics | Discovery of containers/images/volumes/networks, 18 rules, health score, terminal + JSON output, exit codes |
+| **v0.1** | Docker diagnostics | Discovery of containers/images/volumes/networks, 18 rules, health score, terminal + JSON output, exit codes, guarded cleanup |
 | v0.2 | Security depth | Seccomp/AppArmor profile checks, user namespace remapping, read-only rootfs, secrets-in-env heuristics (key-name based), rule severity tuning via config |
 | v0.3 | Dockerfile analysis | Parse a `Dockerfile` without building: missing `USER`, missing `HEALTHCHECK`, `ADD` vs `COPY`, unpinned base images, layer-count and cache-busting hints |
 | v0.4 | Compose analysis | Parse `docker-compose.yml`: privileged services, host mounts, missing restart policies, ports bound to `0.0.0.0`, service dependency sanity |

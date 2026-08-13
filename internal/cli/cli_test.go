@@ -3,6 +3,9 @@ package cli
 import (
 	"testing"
 
+	"github.com/spf13/cobra"
+
+	"github.com/iamcanturk/DoctorDock/internal/cleanup"
 	"github.com/iamcanturk/DoctorDock/pkg/model"
 )
 
@@ -191,6 +194,95 @@ func TestRulesInCategory(t *testing.T) {
 	for _, r := range security {
 		if r.Category() != model.CategorySecurity {
 			t.Errorf("%s is %s, not SECURITY", r.ID(), r.Category())
+		}
+	}
+}
+
+// TestCleanupTargetsFromFlags checks the gate at the flag layer, not just in
+// the cleanup package: --all must never select volumes no matter how it is
+// combined.
+func TestCleanupTargetsFromFlags(t *testing.T) {
+	tests := []struct {
+		name  string
+		flags cleanupFlags
+		want  cleanup.Targets
+	}{
+		{
+			"no flags falls back to the safe defaults",
+			cleanupFlags{},
+			cleanup.Targets{DanglingImages: true, Networks: true},
+		},
+		{
+			"--all covers everything except volumes",
+			cleanupFlags{all: true},
+			cleanup.Targets{Containers: true, Images: true, DanglingImages: true, Networks: true},
+		},
+		{
+			"--all --volumes is the only way to reach volumes",
+			cleanupFlags{all: true, volumes: true},
+			cleanup.Targets{Containers: true, Images: true, DanglingImages: true, Networks: true, Volumes: true},
+		},
+		{
+			"--images implies dangling images",
+			cleanupFlags{images: true},
+			cleanup.Targets{Images: true, DanglingImages: true},
+		},
+		{
+			"--containers alone does not widen to anything else",
+			cleanupFlags{containers: true},
+			cleanup.Targets{Containers: true},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.flags.targets(); got != tt.want {
+				t.Errorf("targets() = %+v, want %+v", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestAllNeverImpliesVolumes restates the invariant at the CLI boundary
+// because this is the one mistake that destroys data.
+func TestAllNeverImpliesVolumes(t *testing.T) {
+	for _, f := range []cleanupFlags{
+		{all: true},
+		{all: true, containers: true},
+		{all: true, images: true, networks: true},
+	} {
+		if f.targets().Volumes {
+			t.Fatalf("%+v selected volumes without --volumes", f)
+		}
+	}
+}
+
+func TestCleanupCommandIsRegistered(t *testing.T) {
+	root := newRootCommand(&globals{}, "0.1.0", "")
+
+	var cleanupCmd *cobra.Command
+	for _, c := range root.Commands() {
+		if c.Name() == "cleanup" {
+			cleanupCmd = c
+		}
+	}
+	if cleanupCmd == nil {
+		t.Fatal("cleanup is not registered")
+	}
+
+	// --apply must exist and default to false: `doctordock cleanup` alone
+	// never deletes anything.
+	apply := cleanupCmd.Flags().Lookup("apply")
+	if apply == nil {
+		t.Fatal("cleanup has no --apply flag")
+	}
+	if apply.DefValue != "false" {
+		t.Errorf("--apply defaults to %q; a dry run must be the default", apply.DefValue)
+	}
+
+	for _, flag := range []string{"yes", "containers", "images", "networks", "volumes", "all", "keep-since"} {
+		if cleanupCmd.Flags().Lookup(flag) == nil {
+			t.Errorf("cleanup is missing the %q flag", flag)
 		}
 	}
 }

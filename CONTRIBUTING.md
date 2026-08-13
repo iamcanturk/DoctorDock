@@ -15,8 +15,11 @@ tool exists:
 3. **No shelling out to `docker`.** Use the Docker Engine API through `internal/docker`.
 4. **No environment variable values.** See [ADR-0005](docs/adr/0005-no-secret-collection.md).
    Key names only.
-5. **Read-only.** v0.1 does not mutate the Docker environment. A future `cleanup` command
-   will require explicit confirmation.
+5. **Nothing is removed without being asked for twice.** `doctordock cleanup` is a dry
+   run unless `--apply` is given, and no flag other than `--volumes` may ever select a
+   volume. Removal lives on `docker.Pruner`, a separate interface from `docker.Client`, so
+   a scan structurally cannot delete anything. See
+   [ADR-0006](docs/adr/0006-cleanup-safety-model.md).
 
 A PR that breaks one of these will be declined regardless of how good the rest is. If you
 think one of them is wrong, open an issue first — that is an ADR-level discussion.
