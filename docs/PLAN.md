@@ -49,7 +49,7 @@ Non-goals for v0.1: AI, CVE databases, automatic cleanup, GUI, telemetry, cloud.
 | 9 | Network discovery | ✅ done |
 | 10 | `Finding` model, severity, category | ✅ done |
 | 11 | Rule engine + registry | ✅ done |
-| 12 | Rules DD001–DD018 | ✅ done |
+| 12 | Rules DD001–DD018 (the plan specified 8; see below) | ✅ done |
 | 13 | Scanner engine (collect → evaluate → aggregate) | ✅ done |
 | 14 | `internal/score` — pluggable scorer | ✅ done |
 | 15 | Terminal report renderer | ✅ done |
@@ -62,6 +62,7 @@ Non-goals for v0.1: AI, CVE databases, automatic cleanup, GUI, telemetry, cloud.
 | 22 | GoReleaser: binaries, Homebrew tap, Scoop, ghcr.io image | ✅ done |
 | 23 | npm wrapper package | ✅ done |
 | 24 | README + docs | ✅ done |
+| 25 | Generated rule catalogue (`make docs`) | ✅ done |
 
 ## Architecture boundary that matters most
 
@@ -93,6 +94,48 @@ Consequences, enforced from day one:
 - The JSON document carries `schema_version`. See [JSON_SCHEMA.md](JSON_SCHEMA.md).
 - No terminal/ANSI concern ever leaks into `internal/scanner`, `internal/rules` or `pkg/model`.
 - Every number the terminal renderer prints must also exist in the JSON output.
+
+## What the plan got wrong
+
+Recorded because the reasons are more useful than the plan was.
+
+**Findings needed grouping, not just a cap.** The plan assumed one entry per
+finding with a cap on low-severity repeats. Against a real machine, seventeen
+containers running as root produced seventeen identical `HIGH` entries that
+pushed the `CRITICAL` one off the screen. Findings are now grouped by rule by
+default, with `--all` restoring per-resource entries.
+
+**Subtractive scoring does not work.** The planned `100 − penalty` model put a
+normal developer laptop at 0/100, which is indistinguishable from an environment
+ten times worse and cannot show improvement. The penalty is now mapped through
+`100 × e^(−penalty/100)`, and repeats of the same rule decay harmonically. See
+[SCORING.md](SCORING.md).
+
+**Health status is only meaningful for running containers.** A stopped container
+keeps whatever health status it had when it stopped, so DD012 was reporting
+containers that failed days ago as currently unhealthy.
+
+**Docker Desktop rewrites bind mount sources.** A macOS bind of `~/.ssh` arrives
+as `/host_mnt/Users/me/.ssh`. Without normalization, DD004 would never have
+fired on a Mac — the platform most likely to run this tool.
+
+**Dual-stack publishes are reported twice.** One `-p 3307:3306` appears once for
+`0.0.0.0` and once for `::`. Collapsing them was necessary or every port would
+be double-counted and DD006 would fire twice for one exposure.
+
+**The rule set grew from 8 to 18.** The plan specified DD001–DD008. Sections 6–8
+also asked for dangling/unused/oversized images, unused volumes and unused
+networks, which needed rules of their own, plus capabilities, memory limits,
+mutable tags, unhealthy containers and restart loops.
+
+**The binary is smaller than costed.** ADR-0002 accepted 15–20 MB for the Docker
+SDK. The measured binary is 10–11 MB, 4 MB compressed — only the client half is
+reachable, so the linker drops the rest. Both ADRs were corrected.
+
+**The container image needs `--group-add`.** Running as non-root — required so
+the tool does not flag its own image under DD001 — means it cannot read the
+Docker socket by default. Rather than run as root, the connection error detects
+the containerized case and prints the exact command to fix it.
 
 ## Release gate for v0.1.0
 

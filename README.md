@@ -298,7 +298,7 @@ make help               # every target
 Unit tests need no Docker daemon: `internal/docker.Fake` implements the client
 interface from fixtures, which is what lets CI cover macOS, Linux and Windows.
 
-Requires Go 1.24+.
+Requires Go 1.25+ — the Docker SDK pulls in a transitive dependency that needs it.
 
 ## Contributing
 

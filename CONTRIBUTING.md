@@ -30,8 +30,8 @@ make build
 ./bin/doctordock
 ```
 
-Requires Go 1.24+. A running Docker daemon is needed to *use* the tool, but not to build or
-test it.
+Requires Go 1.25+ (a transitive dependency of the Docker SDK sets the floor). A running
+Docker daemon is needed to *use* the tool, but not to build or test it.
 
 ## Before you open a PR
 
@@ -39,8 +39,15 @@ test it.
 make check
 ```
 
-That runs `go vet`, `gofmt -l`, `go build ./...` and `go test ./...`. CI runs the same
-thing on Linux, macOS and Windows.
+That runs `gofmt -l`, `go vet`, `go build ./...` and `go test ./...`. CI runs the same on
+Linux, macOS and Windows, plus a race-detector pass and an integration job against a real
+Docker daemon.
+
+If you touched the rule registry, also run:
+
+```bash
+make docs
+```
 
 ## Adding a rule
 
@@ -52,10 +59,14 @@ This is the most common contribution and it is designed to be easy.
    ```go
    type MyRule struct{}
 
-   func (MyRule) ID() string              { return "DD019" }
-   func (MyRule) Name() string            { return "Short human-readable name" }
+   func (MyRule) ID() string               { return "DD019" }
+   func (MyRule) Name() string             { return "Short human-readable name" }
    func (MyRule) Category() model.Category { return model.CategorySecurity }
    func (MyRule) Severity() model.Severity { return model.SeverityHigh }
+   func (MyRule) Description() string {
+       return "One or two sentences describing what the rule looks for. This appears in " +
+           "`doctordock rules` and in the generated catalogue."
+   }
 
    func (r MyRule) Check(ctx context.Context, t Target) []model.Finding {
        var out []model.Finding
@@ -63,28 +74,31 @@ This is the most common contribution and it is designed to be easy.
            if !badThing(c) {
                continue
            }
-           out = append(out, model.Finding{
-               ID:             r.ID(),
-               Severity:       r.Severity(),
-               Category:       r.Category(),
-               Resource:       model.ResourceContainer,
-               ResourceID:     c.ID,
-               ResourceName:   c.Name,
-               Title:          "What is wrong",
-               Description:    "Why it matters, in one or two sentences.",
-               Recommendation: "What the user should actually do about it.",
-           })
+           // newContainerFinding pre-fills the rule and resource identity;
+           // there are newImage/newVolume/newNetwork variants too.
+           f := newContainerFinding(r, c)
+           f.Title = "What is wrong"
+           f.Description = "Why it matters, in one or two sentences."
+           f.Recommendation = "What the user should actually do about it."
+           f.Details = map[string]string{"relevant": "structured data"}
+           out = append(out, f)
        }
        return out
    }
    ```
 
 2. Register it in `internal/rules/registry.go`. One line.
-3. Add a test in `internal/rules/*_test.go` using the fixture helpers.
-4. Document it in `docs/RULES.md`.
+3. Add a test in `internal/rules/rules_test.go` using the `run` and
+   `assertFindings` helpers.
+4. Run `make docs` to regenerate `docs/RULES.md`. Do not edit that file by hand —
+   it is generated from the registry, and CI fails if it is stale.
 
 Rule IDs are sequential (`DD019`, `DD020`, …) and are never reused, even if a rule is
-removed.
+removed: a suppression written against `DD007` must not silently start suppressing
+something else after an upgrade.
+
+A rule's `Severity()` is its *default*. A rule may emit a finding at a higher severity when
+the specific situation warrants it — DD004 escalates for a writable host-root mount.
 
 ### What makes a good rule
 
