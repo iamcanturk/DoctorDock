@@ -1,34 +1,22 @@
 import SwiftUI
 
-/// Every finding, grouped by rule, with the full explanation on demand.
+/// Findings, grouped by rule, with a natively-rendered explanation on the side.
+///
+/// The left rail is a custom scrolling list rather than a `List`: it gives full
+/// control over the selected-row treatment and renders predictably. The right
+/// pane renders the structured explanation from `doctordock explain --format
+/// json` — sections, code blocks and links — instead of dumping terminal text.
 struct FindingsView: View {
     let report: Report
 
-    @State private var selected: FindingGroup?
+    @State private var selectedID: String?
     @State private var severityFilter: Severity?
     @State private var search = ""
 
-    var body: some View {
-        HSplitView {
-            list
-                .frame(minWidth: 320, idealWidth: 380)
-
-            if let selected {
-                FindingDetailView(group: selected)
-                    .frame(minWidth: 360)
-            } else {
-                ContentUnavailableView(
-                    "Select a finding",
-                    systemImage: "sidebar.right",
-                    description: Text("Pick one on the left to see what it means and how to fix it.")
-                )
-                .frame(minWidth: 360)
-            }
-        }
-    }
+    private var groups: [FindingGroup] { report.groupedFindings }
 
     private var filtered: [FindingGroup] {
-        report.groupedFindings.filter { group in
+        groups.filter { group in
             if let severityFilter, group.severity != severityFilter { return false }
             guard !search.isEmpty else { return true }
             let needle = search.lowercased()
@@ -38,173 +26,190 @@ struct FindingsView: View {
         }
     }
 
-    private var list: some View {
+    private var selected: FindingGroup? {
+        filtered.first { $0.id == selectedID } ?? filtered.first
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            rail
+                .frame(width: 340)
+            Divider()
+            detail
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .onAppear { if selectedID == nil { selectedID = filtered.first?.id } }
+    }
+
+    // MARK: - Left rail
+
+    private var rail: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                Picker("", selection: $severityFilter) {
-                    Text("All").tag(Severity?.none)
-                    ForEach(Severity.allCases.reversed(), id: \.self) { severity in
-                        if report.summary.findings.bySeverity.count(severity) > 0 {
-                            Text(severity.rawValue.capitalized).tag(Severity?.some(severity))
+            filterBar
+            Divider()
+            if filtered.isEmpty {
+                Spacer()
+                Text("Nothing matches")
+                    .foregroundStyle(.secondary)
+                Spacer()
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 6) {
+                        ForEach(filtered) { group in
+                            FindingCard(group: group, selected: group.id == selected?.id)
+                                .onTapGesture { selectedID = group.id }
                         }
                     }
+                    .padding(10)
                 }
-                .pickerStyle(.menu)
-                .fixedSize()
-
-                TextField("Filter", text: $search)
-                    .textFieldStyle(.roundedBorder)
             }
-            .padding(10)
+        }
+        .background(.background.opacity(0.4))
+    }
 
-            Divider()
-
-            if filtered.isEmpty {
-                ContentUnavailableView("Nothing matches", systemImage: "magnifyingglass")
-                    .frame(maxHeight: .infinity)
-            } else {
-                List(filtered, selection: Binding(
-                    get: { selected?.id },
-                    set: { id in selected = filtered.first { $0.id == id } }
-                )) { group in
-                    FindingGroupRow(group: group)
-                        .tag(group.id)
-                }
-                .listStyle(.inset)
+    private var filterBar: some View {
+        VStack(spacing: 8) {
+            SeverityFilterBar(counts: report.summary.findings.bySeverity,
+                              selection: $severityFilter)
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.tertiary)
+                    .font(.caption)
+                TextField("Filter findings", text: $search)
+                    .textFieldStyle(.plain)
             }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+            .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 7))
+        }
+        .padding(12)
+    }
+
+    // MARK: - Detail
+
+    @ViewBuilder
+    private var detail: some View {
+        if let selected {
+            FindingDetailView(group: selected)
+                .id(selected.id)
+        } else {
+            ContentUnavailableView("No findings",
+                systemImage: "checkmark.seal",
+                description: Text("This environment looks healthy."))
         }
     }
 }
 
-/// One rule's findings, plus the CLI's own explanation of it.
-struct FindingDetailView: View {
-    let group: FindingGroup
+/// The per-severity filter, as a row of counted pills. Tapping one filters;
+/// tapping it again clears.
+struct SeverityFilterBar: View {
+    let counts: SeverityCounts
+    @Binding var selection: Severity?
 
-    @State private var explanation: String?
-    @State private var loadingExplanation = false
+    // Short codes keep every chip on one line inside the 340pt rail; the full
+    // name is on the tooltip and everywhere else in the UI.
+    private func shortLabel(_ severity: Severity) -> String {
+        switch severity {
+        case .critical: return "Crit"
+        case .high: return "High"
+        case .medium: return "Med"
+        case .low: return "Low"
+        case .info: return "Info"
+        }
+    }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                header
+        HStack(spacing: 5) {
+            chip(label: "All", count: counts.total, color: .secondary,
+                 active: selection == nil, help: "All findings") { selection = nil }
 
-                section("WHAT IS WRONG", group.findings[0].description)
-                section("WHAT TO DO", group.findings[0].recommendation)
-
-                affected
-
-                explanationBlock
-            }
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .task(id: group.id) {
-            explanation = nil
-            await loadExplanation()
-        }
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 8) {
-                Label(group.severity.rawValue, systemImage: group.severity.symbol)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(group.severity.color)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 2)
-                    .background(group.severity.color.opacity(0.14), in: Capsule())
-
-                Text(group.ruleID)
-                    .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.secondary)
-
-                Text(group.category.rawValue.lowercased())
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-
-            Text(group.rule)
-                .font(.title3.weight(.semibold))
-        }
-    }
-
-    private func section(_ title: String, _ body: String) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(title)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-            Text(body)
-                .font(.callout)
-                .fixedSize(horizontal: false, vertical: true)
-                .textSelection(.enabled)
-        }
-    }
-
-    private var affected: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("AFFECTED (\(group.count))")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.secondary)
-
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(group.findings) { finding in
-                    HStack(spacing: 6) {
-                        Image(systemName: group.resource.symbol)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                        Text(finding.resourceName)
-                            .font(.system(.callout, design: .monospaced))
-                            .textSelection(.enabled)
-                        Spacer()
-                        if let detail = finding.details?.values.first, group.count == 1 {
-                            Text(detail)
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                                .lineLimit(1)
-                        }
+            ForEach(Severity.allCases.reversed(), id: \.self) { severity in
+                let n = counts.count(severity)
+                if n > 0 {
+                    chip(label: shortLabel(severity), count: n,
+                         color: severity.color, active: selection == severity,
+                         help: severity.rawValue.capitalized) {
+                        selection = selection == severity ? nil : severity
                     }
-                    .padding(.horizontal, 9)
-                    .padding(.vertical, 4)
                 }
             }
-            .background(Color.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 6))
+            Spacer(minLength: 0)
         }
     }
 
-    /// The long-form explanation comes from `doctordock explain`, not from a
-    /// copy in the app. One source, so the two can never disagree.
-    @ViewBuilder
-    private var explanationBlock: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack {
-                Text("FULL EXPLANATION")
-                    .font(.system(size: 10, weight: .semibold))
+    private func chip(label: String, count: Int, color: Color,
+                      active: Bool, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Text(label)
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+                Text("\(count)")
+                    .font(.system(size: 11, weight: .semibold))
+                    .monospacedDigit()
+                    .opacity(0.75)
+            }
+            .fixedSize()
+            .padding(.horizontal, 7)
+            .padding(.vertical, 4)
+            .background(active ? color.opacity(0.22) : Color.secondary.opacity(0.08),
+                        in: Capsule())
+            .foregroundStyle(active ? color : .secondary)
+            .overlay(Capsule().strokeBorder(active ? color.opacity(0.45) : .clear))
+        }
+        .buttonStyle(.plain)
+        .help(help)
+    }
+}
+
+/// One finding group in the left rail.
+struct FindingCard: View {
+    let group: FindingGroup
+    let selected: Bool
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(group.severity.color)
+                .frame(width: 3)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Image(systemName: group.severity.symbol)
+                        .foregroundStyle(group.severity.color)
+                        .font(.system(size: 11))
+                    Text(group.rule)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                    if group.count > 1 {
+                        Text("\(group.count)")
+                            .font(.system(size: 10, weight: .semibold))
+                            .monospacedDigit()
+                            .padding(.horizontal, 5).padding(.vertical, 1)
+                            .background(Color.secondary.opacity(0.15), in: Capsule())
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Text(subtitle)
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
-                if loadingExplanation {
-                    ProgressView().controlSize(.small)
-                }
-            }
-
-            if let explanation, !explanation.isEmpty {
-                Text(explanation)
-                    .font(.system(.caption, design: .monospaced))
-                    .textSelection(.enabled)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.secondary.opacity(0.06),
-                                in: RoundedRectangle(cornerRadius: 6))
-            } else if !loadingExplanation {
-                Text("Run `doctordock explain \(group.ruleID)` in a terminal for the full write-up.")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
             }
         }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 9)
+        .background(selected ? Color.accentColor.opacity(0.15) : .clear,
+                    in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8)
+            .strokeBorder(selected ? Color.accentColor.opacity(0.4) : .clear))
+        .contentShape(Rectangle())
     }
 
-    private func loadExplanation() async {
-        loadingExplanation = true
-        defer { loadingExplanation = false }
-        explanation = try? await DoctorDockCLI.explain(group.ruleID)
+    private var subtitle: String {
+        if group.count == 1 { return group.findings[0].resourceName }
+        let shown = group.resourceNames.prefix(2).joined(separator: ", ")
+        return group.count > 2 ? "\(shown) +\(group.count - 2)" : shown
     }
 }

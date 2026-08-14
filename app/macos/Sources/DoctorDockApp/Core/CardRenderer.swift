@@ -30,10 +30,21 @@ enum CardRenderer {
     /// Renders a view to PNG by hosting it in a real NSHostingView and capturing
     /// its layer. This lays out ScrollView/List/Table content, which
     /// ImageRenderer does not.
-    static func hosted<V: View>(_ view: V, size: CGSize) -> Data? {
+    static func hosted<V: View>(_ view: V, size: CGSize, settle: TimeInterval = 0) -> Data? {
         let host = NSHostingView(rootView: view)
         host.frame = CGRect(origin: .zero, size: size)
         host.layoutSubtreeIfNeeded()
+
+        // Some views load content in a .task (the finding detail fetches its
+        // explanation). Spinning the run loop lets that finish before capture,
+        // so the render shows the real state rather than a spinner.
+        if settle > 0 {
+            let deadline = Date().addingTimeInterval(settle)
+            while Date() < deadline {
+                RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.05))
+            }
+            host.layoutSubtreeIfNeeded()
+        }
 
         guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else {
             return nil

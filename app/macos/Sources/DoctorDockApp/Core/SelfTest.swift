@@ -109,12 +109,16 @@ enum SelfTest {
             check("cleanup preview", false, describe(error))
         }
 
-        // 5. An explanation, which the finding detail pane depends on.
+        // 5. The structured explanation the finding detail pane renders.
         do {
-            let text = try await DoctorDockCLI.explain("DD005")
-            check("explain DD005 returns text", text.contains("Docker socket"))
+            let e = try await DoctorDockCLI.explanation("DD005")
+            check("explanation DD005 decodes", e.id == "DD005" && e.severity == .critical)
+            check("explanation has fixes with code (\(e.explanation.fixes.count))",
+                  !e.explanation.fixes.isEmpty && e.explanation.fixes.allSatisfy { !$0.code.isEmpty })
+            check("explanation has references",
+                  !(e.explanation.references ?? []).isEmpty)
         } catch {
-            check("explain", false, describe(error))
+            check("explanation", false, describe(error))
         }
 
         // 6. The store must scan without anyone telling it to.

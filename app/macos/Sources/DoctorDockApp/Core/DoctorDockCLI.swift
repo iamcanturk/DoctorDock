@@ -258,6 +258,12 @@ enum DoctorDockCLI {
         return String(data: data, encoding: .utf8) ?? ""
     }
 
+    /// The structured explanation of a rule, for native rendering.
+    static func explanation(_ ruleID: String) async throws -> RuleExplanation {
+        let data = try await run(["explain", ruleID, "--format", "json"])
+        return try decode(RuleExplanation.self, from: data)
+    }
+
     /// The version of the binary actually being used.
     static func version() async throws -> String {
         let data = try await run(["version", "--format", "json"])

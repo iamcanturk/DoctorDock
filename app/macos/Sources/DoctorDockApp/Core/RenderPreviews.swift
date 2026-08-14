@@ -18,6 +18,8 @@ import AppKit
     let report = SampleData.report
     let store = ScanStore.preview(report)
 
+    let explanation: RuleExplanation? = SampleData.explanation
+
     // Approximations of the AppKit materials, per scheme.
     func popoverBG(_ scheme: ColorScheme) -> Color {
         scheme == .dark ? Color(red: 0.13, green: 0.13, blue: 0.14)
@@ -33,6 +35,29 @@ import AppKit
             showPlatform: true, platform: report.docker.operatingSystem ?? "")), 1),
     ]
     var viewSizes: [String: CGSize] = [:]
+
+    // A standalone finding detail with the explanation injected, so the fixes,
+    // code blocks and references design can be reviewed.
+    if let socket = report.groupedFindings.first(where: { $0.ruleID == "DD005" }) {
+        viewSizes["finding-detail"] = CGSize(width: 720, height: 900)
+        jobs.append(("finding-detail", AnyView(
+            FindingDetailView(group: socket, preloaded: explanation)
+                .background(Color(red: 0.11, green: 0.11, blue: 0.12))
+                .environment(\.colorScheme, .dark)), 2))
+    }
+
+    // Resource tables (dark only, to keep the set small).
+    for (name, view) in [
+        ("containers", AnyView(ContainersView(report: report))),
+        ("images", AnyView(ImagesView(report: report))),
+        ("volumes", AnyView(VolumesView(report: report))),
+        ("networks", AnyView(NetworksView(report: report))),
+    ] {
+        viewSizes[name] = CGSize(width: 820, height: 460)
+        jobs.append((name, AnyView(
+            view.background(Color(red: 0.12, green: 0.12, blue: 0.13))
+                .environment(\.colorScheme, .dark)), 2))
+    }
 
     // The share sheet, hosted (it contains AppKit controls).
     viewSizes["share-sheet"] = CGSize(width: 560, height: 720)
@@ -75,7 +100,9 @@ import AppKit
             data = CardRenderer.png(view, scale: scale)
         } else {
             let size = viewSizes[name] ?? CGSize(width: 800, height: 600)
-            data = CardRenderer.hosted(view, size: size)
+            // Findings and cleanup fetch content asynchronously; let it settle.
+            let settle: TimeInterval = name.hasPrefix("findings") ? 2.0 : 0
+            data = CardRenderer.hosted(view, size: size, settle: settle)
         }
         if let data {
             let path = "\(dir)/\(name).png"

@@ -10,14 +10,17 @@ import (
 )
 
 // RuleDetail is everything `doctordock explain DD005` prints.
+//
+// With --format json this is the document the macOS app decodes, so the field
+// names follow the same snake_case convention as the rest of the contract.
 type RuleDetail struct {
-	ID          string
-	Name        string
-	Severity    model.Severity
-	Category    model.Category
-	Description string
-	Explanation rules.Explanation
-	HasLongForm bool
+	ID          string            `json:"id"`
+	Name        string            `json:"name"`
+	Severity    model.Severity    `json:"severity"`
+	Category    model.Category    `json:"category"`
+	Description string            `json:"description"`
+	Explanation rules.Explanation `json:"explanation"`
+	HasLongForm bool              `json:"has_long_form"`
 }
 
 // RenderExplanation writes the long-form view of one rule.

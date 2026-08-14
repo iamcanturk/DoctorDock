@@ -6,35 +6,38 @@ package rules
 // enough for somebody who has just been told their container is insecure and
 // wants to know what that actually means before changing anything in
 // production.
+// The json tags matter: `doctordock explain --format json` is consumed by the
+// macOS app, so this shares the snake_case convention of the rest of the
+// contract rather than leaking Go field names.
 type Explanation struct {
 	// What the rule looks for, in plain terms.
-	What string
+	What string `json:"what"`
 	// Why it matters — the consequence, not the principle.
-	Why string
+	Why string `json:"why"`
 	// Scenario is a concrete walk-through of what goes wrong. Empty when the
 	// rule is not about an attack.
-	Scenario string
+	Scenario string `json:"scenario,omitempty"`
 	// Fixes are ordered best-first.
-	Fixes []Fix
+	Fixes []Fix `json:"fixes"`
 	// FalsePositives explains when the finding is fine to ignore. Being honest
 	// about this is what stops people ignoring the whole tool.
-	FalsePositives string
-	References     []Reference
+	FalsePositives string      `json:"false_positives,omitempty"`
+	References     []Reference `json:"references,omitempty"`
 }
 
 // Fix is one concrete way to resolve a finding.
 type Fix struct {
-	Title string
+	Title string `json:"title"`
 	// Lang is the syntax highlight hint: "bash", "dockerfile" or "yaml".
-	Lang string
-	Code string
+	Lang string `json:"lang"`
+	Code string `json:"code"`
 }
 
 // Reference points at authoritative documentation. DoctorDock never fetches
 // these — it only prints them.
 type Reference struct {
-	Title string
-	URL   string
+	Title string `json:"title"`
+	URL   string `json:"url"`
 }
 
 // Explain returns the long-form explanation for a rule ID.
