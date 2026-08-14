@@ -92,24 +92,53 @@ homebrew_casks:
           end
 
 # The container image, for running DoctorDock in CI without installing anything.
-dockers_v2:
-  - id: doctordock
+# Built per-arch (each stages its own linux binary into the context), then
+# combined into one multi-arch tag by docker_manifests below.
+dockers:
+  - id: doctordock-amd64
+    ids: [doctordock]
+    goos: linux
+    goarch: amd64
     dockerfile: Dockerfile.release
-    images:
-      - ghcr.io/iamcanturk/doctordock
-    tags:
-      - "{{ .Version }}"
-      - latest
-    platforms:
-      - linux/amd64
-      - linux/arm64
-    labels:
-      org.opencontainers.image.title: "{{ .ProjectName }}"
-      org.opencontainers.image.description: Local-first Docker diagnostics
-      org.opencontainers.image.version: "{{ .Version }}"
-      org.opencontainers.image.revision: "{{ .FullCommit }}"
-      org.opencontainers.image.source: https://github.com/iamcanturk/DoctorDock
-      org.opencontainers.image.licenses: MIT
+    use: buildx
+    image_templates:
+      - "ghcr.io/iamcanturk/doctordock:{{ .Version }}-amd64"
+      - "ghcr.io/iamcanturk/doctordock:latest-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Local-first Docker diagnostics"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source=https://github.com/iamcanturk/DoctorDock"
+      - "--label=org.opencontainers.image.licenses=MIT"
+  - id: doctordock-arm64
+    ids: [doctordock]
+    goos: linux
+    goarch: arm64
+    dockerfile: Dockerfile.release
+    use: buildx
+    image_templates:
+      - "ghcr.io/iamcanturk/doctordock:{{ .Version }}-arm64"
+      - "ghcr.io/iamcanturk/doctordock:latest-arm64"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.description=Local-first Docker diagnostics"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source=https://github.com/iamcanturk/DoctorDock"
+      - "--label=org.opencontainers.image.licenses=MIT"
+
+docker_manifests:
+  - name_template: "ghcr.io/iamcanturk/doctordock:{{ .Version }}"
+    image_templates:
+      - "ghcr.io/iamcanturk/doctordock:{{ .Version }}-amd64"
+      - "ghcr.io/iamcanturk/doctordock:{{ .Version }}-arm64"
+  - name_template: "ghcr.io/iamcanturk/doctordock:latest"
+    image_templates:
+      - "ghcr.io/iamcanturk/doctordock:latest-amd64"
+      - "ghcr.io/iamcanturk/doctordock:latest-arm64"
 
 release:
   draft: false
