@@ -48,7 +48,22 @@ final class ScanStore: ObservableObject {
 
     // MARK: - Lifecycle
 
-    init() {
+    convenience init() {
+        self.init(skipAutoScan: false)
+    }
+
+    /// A store preloaded with a report, for previews and the renderer.
+    static func preview(_ report: Report) -> ScanStore {
+        let store = ScanStore(skipAutoScan: true)
+        store.loadForPreview(report)
+        return store
+    }
+
+    /// The designated initialiser. `skipAutoScan` is for previews and the
+    /// headless renderer, which load a fixed report instead of scanning.
+    init(skipAutoScan: Bool) {
+        guard !skipAutoScan else { return }
+
         // The store scans as soon as it exists, rather than waiting for a view
         // to call a start method.
         //
@@ -62,6 +77,13 @@ final class ScanStore: ObservableObject {
             await self.refresh()
             self.binaryVersion = try? await DoctorDockCLI.version()
         }
+    }
+
+    /// Loads a fixed report for previews, bypassing the daemon.
+    func loadForPreview(_ report: Report) {
+        state = .loaded(report)
+        lastUpdated = report.generatedAt
+        binaryVersion = report.tool.version
     }
 
     func scheduleTimer() {

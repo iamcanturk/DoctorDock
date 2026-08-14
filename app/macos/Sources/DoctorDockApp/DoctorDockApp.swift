@@ -33,6 +33,15 @@ struct DoctorDockApp: App {
             }
         }
 
+        // Share is a small dedicated window rather than a sheet, so it can be
+        // opened identically from the menubar popover and the panel — a sheet
+        // cannot be presented from a MenuBarExtra popover.
+        Window("Share", id: PanelWindow.shareID) {
+            ShareWindowView()
+                .environmentObject(store)
+        }
+        .windowResizability(.contentSize)
+
         Settings {
             SettingsView()
                 .environmentObject(store)
@@ -47,6 +56,14 @@ struct DoctorDockApp: App {
             exit(code)
         }
 
+        // `--render <dir>` dumps every view to PNG using the same renderer the
+        // share feature uses, so the design can be reviewed without a screen.
+        if let i = CommandLine.arguments.firstIndex(of: "--render"),
+           i + 1 < CommandLine.arguments.count {
+            let code = renderPreviews(to: CommandLine.arguments[i + 1])
+            exit(code)
+        }
+
         // The app has no Dock icon and no main menu; LSUIElement in Info.plist
         // declares that, and this makes it true when running from `swift run`
         // where there is no bundle.
@@ -56,6 +73,7 @@ struct DoctorDockApp: App {
 
 enum PanelWindow {
     static let id = "doctordock-panel"
+    static let shareID = "doctordock-share"
 }
 
 /// Bridges the async self-test into `init`, which cannot await.

@@ -248,6 +248,10 @@ struct PopoverView: View {
             Spacer()
 
             Menu {
+                Button("Share Docker health…") {
+                    openWindow(id: PanelWindow.shareID)
+                    NSApp.activate(ignoringOtherApps: true)
+                }
                 Button("Settings…") { openSettings() }
                 Divider()
                 if let version = store.binaryVersion {

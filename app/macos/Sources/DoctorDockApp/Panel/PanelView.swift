@@ -29,6 +29,8 @@ struct PanelView: View {
         }
     }
 
+    @Environment(\.openWindow) private var openWindow
+
     var body: some View {
         NavigationSplitView {
             List(Section.allCases, selection: $section) { item in
@@ -72,6 +74,16 @@ struct PanelView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            }
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    openWindow(id: PanelWindow.shareID)
+                    NSApp.activate(ignoringOtherApps: true)
+                } label: {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .help("Share your Docker health as an image")
+                .disabled(store.report == nil)
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
