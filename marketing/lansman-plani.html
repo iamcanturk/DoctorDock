@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DoctorDock — Lansman & Sosyal Medya Planı</title>
+<style>
+  :root{
+    --accent:#2496ed; --accent-2:#55b0f4; --accent-deep:#0b6bc4;
+    --bg:#070b12; --panel:#0e1826; --panel-2:#132236; --line:#20344e;
+    --text:#eaf1fb; --muted:#9fb2cf; --faint:#65788f;
+    --green:#35c07a; --yellow:#e0a72a; --red:#e0574a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+    line-height:1.62;-webkit-font-smoothing:antialiased;display:flex;min-height:100vh;
+  }
+  a{color:var(--accent-2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,kbd{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+
+  .sidebar{
+    width:270px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);
+    position:sticky;top:0;height:100vh;overflow-y:auto;padding:22px 14px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;font-weight:800;font-size:1.05rem}
+  .brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(150deg,var(--accent-2),var(--accent-deep));
+    display:grid;place-items:center;font-size:18px}
+  .brand small{display:block;font-weight:500;font-size:.72rem;color:var(--muted);letter-spacing:.02em}
+  .nav{list-style:none;display:grid;gap:2px}
+  .nav button{
+    width:100%;text-align:left;display:flex;gap:11px;align-items:center;
+    background:none;border:0;color:var(--muted);font:inherit;font-size:.92rem;
+    padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s;
+  }
+  .nav button:hover{background:var(--panel-2);color:var(--text)}
+  .nav button.active{background:color-mix(in srgb,var(--accent) 18%,transparent);color:#fff;font-weight:600}
+  .nav button .n{width:22px;height:22px;flex-shrink:0;border-radius:6px;background:var(--panel-2);
+    display:grid;place-items:center;font-size:.72rem;color:var(--faint)}
+  .nav button.active .n{background:var(--accent);color:#fff}
+  .side-foot{padding:16px 10px 4px;color:var(--faint);font-size:.75rem;border-top:1px solid var(--line);margin-top:14px}
+
+  .main{flex:1;min-width:0;padding:clamp(24px,4vw,56px) clamp(20px,5vw,72px);max-width:1000px}
+  .page{display:none;animation:fade .35s ease}
+  .page.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .eyebrow{color:var(--accent);font-weight:700;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase}
+  h1{font-size:clamp(1.9rem,4vw,2.9rem);font-weight:800;letter-spacing:-.02em;margin:8px 0 10px;line-height:1.1}
+  h2{font-size:clamp(1.3rem,2.6vw,1.7rem);font-weight:800;margin:34px 0 12px;letter-spacing:-.01em}
+  h3{font-size:1.08rem;font-weight:700;margin:22px 0 8px}
+  p{color:var(--text);margin:10px 0}
+  .lede{color:var(--muted);font-size:1.12rem;max-width:62ch}
+  ul,ol{margin:10px 0 10px 22px;color:var(--text)}
+  li{margin:6px 0}
+  strong{color:#fff}
+  .muted{color:var(--muted)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin:16px 0}
+  .grid{display:grid;gap:14px}
+  @media(min-width:720px){.grid.c2{grid-template-columns:1fr 1fr}.grid.c3{grid-template-columns:repeat(3,1fr)}}
+  .pill{display:inline-block;font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:999px;
+    background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent-2);letter-spacing:.02em}
+  .tag-x{background:color-mix(in srgb,#1d9bf0 18%,transparent);color:#6cc4ff}
+  .tag-hn{background:color-mix(in srgb,#ff6600 18%,transparent);color:#ff9a4d}
+  .tag-rd{background:color-mix(in srgb,#ff4500 18%,transparent);color:#ff7a4d}
+  .tag-li{background:color-mix(in srgb,#0a66c2 22%,transparent);color:#5aa0e6}
+  .tag-ph{background:color-mix(in srgb,#da552f 20%,transparent);color:#ff8a63}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.92rem}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:.8rem;text-transform:uppercase;letter-spacing:.04em}
+  tbody tr:hover{background:var(--panel)}
+  .tz{font-variant-numeric:tabular-nums;font-weight:700;color:#fff}
+  .tz.tr{color:var(--accent-2)}
+
+  .snippet{background:#0a1220;border:1px solid var(--line);border-radius:12px;margin:14px 0;overflow:hidden}
+  .snippet header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);
+    background:var(--panel);font-size:.82rem;color:var(--muted)}
+  .snippet header .t{flex:1;font-weight:600;color:var(--text)}
+  .snippet .body{padding:14px 16px;white-space:pre-wrap;font-size:.93rem;line-height:1.6}
+  .snippet .body.mono{font-family:ui-monospace,Menlo,monospace;font-size:.86rem;color:#d6e6fb}
+  .copy{border:1px solid var(--line);background:var(--panel-2);color:var(--muted);font:inherit;font-size:.76rem;
+    font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;transition:.15s;flex-shrink:0}
+  .copy:hover{color:#fff;border-color:var(--accent)}
+  .copy.done{color:var(--green);border-color:var(--green)}
+  .char{font-size:.72rem;color:var(--faint);flex-shrink:0}
+
+  .callout{border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);
+    padding:14px 18px;border-radius:0 12px 12px 0;margin:16px 0}
+  .callout.warn{border-color:var(--yellow);background:color-mix(in srgb,var(--yellow) 8%,transparent)}
+  .callout.good{border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,transparent)}
+
+  .steps{counter-reset:s;list-style:none;margin-left:0}
+  .steps li{position:relative;padding-left:40px;margin:12px 0}
+  .steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:-2px;
+    width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:.82rem;
+    display:grid;place-items:center}
+
+  .pager{display:flex;justify-content:space-between;gap:12px;margin-top:44px;padding-top:22px;border-top:1px solid var(--line)}
+  .pager button{background:var(--panel-2);border:1px solid var(--line);color:var(--text);font:inherit;font-weight:600;
+    padding:11px 18px;border-radius:11px;cursor:pointer;transition:.15s}
+  .pager button:hover:not(:disabled){border-color:var(--accent);background:var(--panel)}
+  .pager button:disabled{opacity:.35;cursor:default}
+
+  .article{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(20px,3vw,40px)}
+  .article h1{font-size:1.9rem;margin-top:0}
+  .article h2{font-size:1.4rem;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .article h3{font-size:1.1rem}
+  .article pre{background:#0a1220;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;
+    font-family:ui-monospace,Menlo,monospace;font-size:.84rem;line-height:1.55;margin:14px 0}
+  .article code{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent-2);padding:1px 6px;border-radius:5px;font-size:.88em}
+  .article pre code{background:none;color:#d6e6fb;padding:0}
+  .article ul{margin-left:20px}
+  .article .meta{color:var(--faint);font-size:.85rem;margin-bottom:18px}
+
+  @media(max-width:860px){
+    body{flex-direction:column}
+    .sidebar{position:static;width:100%;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+    .nav{grid-template-columns:repeat(2,1fr)}
+  }
+  @media print{
+    .sidebar,.pager,.copy{display:none!important}
+    .page{display:block!important;page-break-after:always;animation:none}
+    body{color:#111;background:#fff}
+    .main{max-width:none}
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <span class="logo">🩺</span>
+    <div>DoctorDock<small>Lansman & Sosyal Medya Planı</small></div>
+  </div>
+  <ul class="nav" id="nav"></ul>
+  <div class="side-foot">
+    Bu doküman senin için hazırlandı. Yazdır / PDF: <kbd>⌘P</kbd>.<br>
+    Ağustos 2026 · yaz saati baz alındı.
+  </div>
+</aside>
+
+<main class="main" id="main">
+
+  <section class="page" data-title="Genel Bakış" data-icon="1">
+    <span class="eyebrow">Lansman Planı</span>
+    <h1>DoctorDock'u dünyaya duyurma rehberi</h1>
+    <p class="lede">Bu dokümanda DoctorDock'u özellikle <strong>ABD geliştirici kitlesinde</strong> öne çıkarmak için ihtiyacın olan her şey var: strateji, kanal kanal ne paylaşacağın, <strong>hangi saatte paylaşacağın</strong>, hazır kopyala-yapıştır metinler ve WordPress'e koyabileceğin blog yazısı.</p>
+
+    <div class="callout good">
+      <strong>Nasıl kullanılır:</strong> Soldaki sayfalardan ilerle. Her metnin sağ üstündeki <em>Kopyala</em> butonu metni panoya alır — doğrudan platforma yapıştır. Metinler ABD kitlesi için <strong>İngilizce</strong>, açıklamalar Türkçe. Türkçe tweet varyantları da var.
+    </div>
+
+    <h2>Tek cümlede konumlandırma</h2>
+    <div class="card">
+      <p style="font-size:1.15rem;margin:0"><strong>DoctorDock</strong> — Docker ortamını güvenlik, hatalı yapılandırma ve boşa giden disk için <strong>saniyenin altında, tamamen çevrimdışı</strong> tarayan; <strong>yapay zeka içermeyen</strong>, açık kaynak bir araç. "Docker'ınız için bir doktor."</p>
+    </div>
+
+    <h2>Bu turda elindeki varlıklar</h2>
+    <div class="grid c2">
+      <div class="card"><span class="pill">Görsel</span><h3 style="margin-top:10px">Sağlık kartı (16:9)</h3><p class="muted">Skor + kaynak sayıları, sadece toplamlar. X ve link önizlemesi için ideal. <code>web/assets/health-card.png</code></p></div>
+      <div class="card"><span class="pill">Görsel</span><h3 style="margin-top:10px">Uygulama ekran görüntüleri</h3><p class="muted">Genel bakış, bulgu detayı, menubar. <code>web/assets/app-*.png</code></p></div>
+      <div class="card"><span class="pill">Video</span><h3 style="margin-top:10px">Kare promo videosu</h3><p class="muted">~16 sn, akışta oynatmak için. <code>marketing/promo-square.mp4</code></p></div>
+      <div class="card"><span class="pill">Site</span><h3 style="margin-top:10px">Landing</h3><p class="muted"><a href="https://doctordock.iamcanturk.dev">doctordock.iamcanturk.dev</a> — SEO + FAQ + yapısal veri hazır.</p></div>
+    </div>
+  </section>
+
+  <section class="page" data-title="Strateji" data-icon="2">
+    <span class="eyebrow">Temel</span>
+    <h1>Strateji & konumlandırma</h1>
+    <p class="lede">Ürünü doğru çerçeveyle sunarsan mesaj kendini yayar. DoctorDock'un üç güçlü, tartışma yaratan açısı var.</p>
+
+    <h2>Öne çıkacak üç açı</h2>
+    <div class="grid c3">
+      <div class="card"><h3>1 · AI yok, bilerek</h3><p class="muted">AI'ya doymuş bir pazarda kontrast: "kasıtlı olarak yapay zeka içermeyen bir geliştirici aracı". Okunabilir, deterministik Go.</p></div>
+      <div class="card"><h3>2 · Tamamen çevrimdışı</h3><p class="muted">Sıfır ağ çağrısı, telemetri yok, hesap yok. Air-gapped ve CI'da çalışır. Gizlilik hikayesi güçlü.</p></div>
+      <div class="card"><h3>3 · Görünmeyeni gösterir</h3><p class="muted">Host'a bağlı socket, 0.0.0.0'a açık DB, root çalışan container'lar, kimsenin kullanmadığı GB'larca imaj.</p></div>
+    </div>
+
+    <h2>Hedef kitle</h2>
+    <ul>
+      <li><strong>Bireysel geliştiriciler & self-hoster'lar</strong> — makinesinde Docker olan herkes; asıl viral kitle.</li>
+      <li><strong>DevOps / platform mühendisleri</strong> — CI kapısı ve yapılandırma hijyeni ilgisini çeker.</li>
+      <li><strong>Güvenlik meraklıları</strong> — "CVE tarayıcısı değil, yapılandırma katmanı" ayrımı ilgi çeker.</li>
+    </ul>
+
+    <h2>Altın kurallar</h2>
+    <div class="callout">
+      <ul style="margin:0">
+        <li><strong>Günde bir kanal.</strong> Her mecrada tüm yorumlara cevap verebilesin diye.</li>
+        <li><strong>Önce problem, sonra link.</strong> "Şunu yaşadım" gerçek hikayesi, satış değil.</li>
+        <li><strong>Her platforma özel yaz.</strong> Aynı bloğu kopyalama; Reddit ≠ LinkedIn ≠ X.</li>
+        <li><strong>Dürüst ol.</strong> Trivy/Grype'ı rakip gibi değil, tamamlayıcı gibi anlat. Yanlış pozitifleri açıkça sor.</li>
+        <li><strong>İlk 2 saat kritik.</strong> Paylaştıktan sonra klavyenin başında ol, hızlı yanıt algoritmayı besler.</li>
+      </ul>
+    </div>
+
+    <h2>Kanal önceliği</h2>
+    <table>
+      <thead><tr><th>Kanal</th><th>Neden</th><th>Beklenti</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill tag-x">X / Twitter</span></td><td>Geliştirici topluluğu, thread formatı, görsel</td><td>Ana kıvılcım</td></tr>
+        <tr><td><span class="pill tag-hn">Hacker News</span></td><td>"Show HN" — teknik kitle, hızlı geri bildirim</td><td>En yüksek kaliteli trafik</td></tr>
+        <tr><td><span class="pill tag-rd">Reddit</span></td><td>r/docker, r/selfhosted — niş, ilgili</td><td>Sürdürülebilir trafik</td></tr>
+        <tr><td><span class="pill tag-li">LinkedIn</span></td><td>Profesyonel hikaye, "neden yaptım"</td><td>İtibar + iş ağı</td></tr>
+        <tr><td><span class="pill tag-ph">Product Hunt</span></td><td>Hazır olunca; keşif + rozet</td><td>Uzun kuyruk</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page" data-title="Zamanlama (ABD)" data-icon="3">
+    <span class="eyebrow">Kritik</span>
+    <h1>Ne zaman paylaşmalısın?</h1>
+    <p class="lede">ABD kitlesi için içerik <strong>ABD sabahı</strong> (Doğu saati) paylaşıldığında en çok etkileşim alır. Sen Türkiye'desin, o yüzden her satırda <strong>Türkiye saati karşılığı</strong> da var.</p>
+
+    <div class="callout warn">
+      <strong>Zaman dilimi:</strong> Yaz saatinde (Mart–Kasım) <strong>Türkiye = ET + 7 saat</strong> ve <strong>= PT + 10 saat</strong>.
+      Yani ABD Doğu'da sabah 09:00 = Türkiye'de 16:00. Kış saatinde (Kasım–Mart) Türkiye = ET+8 / PT+11 olur, yani hesapları 1 saat kaydır.
+    </div>
+
+    <h2>Platform bazında en iyi zaman</h2>
+    <table>
+      <thead><tr><th>Kanal</th><th>En iyi gün</th><th>ABD saati</th><th>Türkiye saati</th><th>Not</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill tag-x">X — lansman thread'i</span></td><td>Salı–Perşembe</td><td class="tz">09:00–09:30 ET</td><td class="tz tr">16:00–16:30</td><td>Sabah zirvesi; 13:00 ET ikinci dalga</td></tr>
+        <tr><td><span class="pill tag-x">X — normal tweet</span></td><td>Hafta içi</td><td class="tz">12:00–13:00 ET</td><td class="tz tr">19:00–20:00</td><td>Öğle molası etkileşimi</td></tr>
+        <tr><td><span class="pill tag-hn">Show HN</span></td><td>Salı–Perşembe</td><td class="tz">08:00–09:00 ET</td><td class="tz tr">15:00–16:00</td><td>HN sabah en yoğun; hafta sonu az rekabet</td></tr>
+        <tr><td><span class="pill tag-rd">r/docker</span></td><td>Salı–Perşembe</td><td class="tz">08:00–10:00 ET</td><td class="tz tr">15:00–17:00</td><td>Hafta içi sabah</td></tr>
+        <tr><td><span class="pill tag-rd">r/selfhosted</span></td><td>Cmt / Pazar</td><td class="tz">10:00–13:00 ET</td><td class="tz tr">17:00–20:00</td><td>Hobi kitlesi hafta sonu aktif</td></tr>
+        <tr><td><span class="pill tag-li">LinkedIn</span></td><td>Salı–Perşembe</td><td class="tz">08:00–10:00 ET</td><td class="tz tr">15:00–17:00</td><td>İş saatleri başı</td></tr>
+        <tr><td><span class="pill tag-ph">Product Hunt</span></td><td>Salı / Çarşamba</td><td class="tz">00:01 PT</td><td class="tz tr">10:01</td><td>Gün 12:01 PT başlar; tüm gün destek şart</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Kaçınılması gerekenler</h2>
+    <ul>
+      <li><strong>Cuma öğleden sonra & hafta sonu</strong> (self-hosted hariç) — profesyonel/dev trafiği düşük.</li>
+      <li><strong>Pazartesi sabahı erken</strong> — gelen kutusu kalabalığında kaybolur.</li>
+      <li><strong>Büyük ABD tatilleri</strong> (ör. 4 Temmuz, Şükran Günü haftası) — dikkat dağınık.</li>
+      <li><strong>Aynı anda iki büyük kanal</strong> — yorumlara yetişemezsin, ivme dağılır.</li>
+    </ul>
+  </section>
+
+  <section class="page" data-title="7 Günlük Takvim" data-icon="4">
+    <span class="eyebrow">Uygulama</span>
+    <h1>Gün gün lansman takvimi</h1>
+    <p class="lede">Salı başlaman önerilir. Her gün bir ana hamle + o hamlenin yorumlarını yönet.</p>
+
+    <table>
+      <thead><tr><th>Gün</th><th>Ana hamle</th><th>Saat (TR)</th><th>Yapılacaklar</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Gün 0<br>Salı</strong></td><td><span class="pill tag-x">X thread</span> + <span class="pill tag-hn">Show HN</span></td><td class="tz tr">16:00<br>(HN 15:30)</td><td>Önce X thread'ini at + sağlık kartını ekle. Hemen ardından Show HN gönder. Thread'i sabitle. Gün boyu <strong>her yoruma yanıt ver</strong>. Akşam metrikleri not al.</td></tr>
+        <tr><td><strong>Gün 1<br>Çarşamba</strong></td><td><span class="pill tag-rd">r/docker</span> + <span class="pill tag-li">LinkedIn</span></td><td class="tz tr">15:00<br>16:00</td><td>r/docker'a problem odaklı post. Birkaç saat sonra LinkedIn "neden yaptım" postu. Dünkü thread'e yeni gelişme (varsa HN sonucu) olarak alıntı-tweet.</td></tr>
+        <tr><td><strong>Gün 2<br>Perşembe</strong></td><td><span class="pill tag-rd">r/selfhosted</span> + <span class="pill tag-x">TR tweet</span></td><td class="tz tr">17:00<br>21:00</td><td>r/selfhosted'a home-lab açısıyla post. Akşam Türk kitleye Türkçe tweet + görsel.</td></tr>
+        <tr><td><strong>Gün 3<br>Cuma</strong></td><td>Blog / dev.to</td><td class="tz tr">16:00</td><td>Blog yazısını yayınla (WordPress). İngilizce özetini dev.to / Hashnode'a çapraz yayınla, canonical link ver. X'te blog'u paylaş.</td></tr>
+        <tr><td><strong>Hafta sonu</strong></td><td>Hafif etkileşim</td><td class="muted">—</td><td>Gelen yorum/issue'lara cevap. self-hosted topluluğu aktif; organik konuşmalara katıl. Dinlen.</td></tr>
+        <tr><td><strong>Gün 6–7</strong></td><td><span class="pill tag-ph">Product Hunt hazırlık</span></td><td class="muted">—</td><td>PH sayfası: görseller, tagline, ilk destekçileri (arkadaş/topluluk) uyar. README + landing + <code>brew install</code> pürüzsüz mü son kontrol.</td></tr>
+        <tr><td><strong>Sonraki Salı</strong></td><td><span class="pill tag-ph">Product Hunt lansmanı</span></td><td class="tz tr">10:01</td><td>00:01 PT'de yayında. Gün boyu her yoruma cevap; X'te "PH'deyiz" duyurusu.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout good"><strong>İpucu:</strong> Her hamleden sonra o postun linkini X'te kendi thread'ine yanıt olarak ekle — tüm lansmanı tek bir yerden takip edilebilir kılar ve etkileşimi biriktirir.</div>
+  </section>
+
+  <section class="page" data-title="X (Twitter)" data-icon="5">
+    <span class="eyebrow">Kanal</span>
+    <h1>X / Twitter <span class="pill tag-x">ana kıvılcım</span></h1>
+    <p class="lede">Lansman thread'i 8 tweet. 1. tweet'e sağlık kartını, 6. tweet'e uygulama ekran görüntüsünü ekle. İngilizce (ABD kitlesi).</p>
+
+    <div id="x-thread"></div>
+
+    <h2>Tek başına tweet (yeniden kullanılabilir)</h2>
+    <div id="x-single"></div>
+
+    <h2>Türkçe varyant</h2>
+    <div id="x-tr"></div>
+
+    <div class="callout"><strong>Thread ipuçları:</strong> İlk tweet görselli olsun (kart). Her tweet tek fikir. Linkleri son tweet'e koy (algoritma link'li ilk tweet'i az gösterir). Thread bittikten sonra ilk tweet'i sabitle. İlk 30 dk gelen her yanıta cevap ver.</div>
+  </section>
+
+  <section class="page" data-title="Hacker News" data-icon="6">
+    <span class="eyebrow">Kanal</span>
+    <h1>Hacker News <span class="pill tag-hn">Show HN</span></h1>
+    <p class="lede">En kaliteli teknik trafik burada. Başlığı sade tut, ilk yorumu sen yaz: "neden yaptım" hikayesi, abartısız, geri bildirim iste.</p>
+
+    <h2>Başlık</h2>
+    <div id="hn-title"></div>
+
+    <h2>İlk yorum (sen yaz, gönderdikten hemen sonra)</h2>
+    <div id="hn-comment"></div>
+
+    <div class="callout warn"><strong>HN kuralları:</strong> Başlık "Show HN:" ile başlamalı. Abartı/emoji yok. Kendi postuna oy isteme (kurallar yasaklar). Salı–Perşembe 15:00–16:00 TR ideal. Ön sayfaya çıkarsa saatlerce yorum gelir — hazır ol.</div>
+  </section>
+
+  <section class="page" data-title="Reddit" data-icon="7">
+    <span class="eyebrow">Kanal</span>
+    <h1>Reddit <span class="pill tag-rd">niş & sürdürülebilir</span></h1>
+    <p class="lede">İki alt topluluk, iki farklı açı. Aynı metni iki yere yapıştırma — her biri kendi diline yazıldı. Önce problem, link gövdenin ortasında.</p>
+
+    <h2>r/docker</h2>
+    <div id="rd-docker-title"></div>
+    <div id="rd-docker-body"></div>
+
+    <h2>r/selfhosted</h2>
+    <div id="rd-self-title"></div>
+    <div id="rd-self-body"></div>
+
+    <div class="callout warn"><strong>Reddit kuralları:</strong> Her subreddit'in self-promotion kurallarını oku (genelde "9:1" kuralı: her 1 kendi linkine 9 katkı). Yorumlara samimi cevap ver, savunmacı olma. Yanlış pozitifleri sorman güven kazandırır.</div>
+  </section>
+
+  <section class="page" data-title="LinkedIn" data-icon="8">
+    <span class="eyebrow">Kanal</span>
+    <h1>LinkedIn <span class="pill tag-li">itibar</span></h1>
+    <p class="lede">Profesyonel ama insani "neden yaptım" hikayesi. Ekran görüntüsü + sağlık kartı ekle. Salı–Perşembe 15:00–17:00 TR.</p>
+    <div id="li-post"></div>
+    <div class="callout"><strong>İpucu:</strong> İlk yoruma repo linkini koy (LinkedIn gövdedeki linkleri az gösterir). İlk saatte gelen yorumlara cevap ver.</div>
+  </section>
+
+  <section class="page" data-title="Product Hunt" data-icon="9">
+    <span class="eyebrow">Kanal</span>
+    <h1>Product Hunt <span class="pill tag-ph">keşif</span></h1>
+    <p class="lede">Acele etme — README, landing ve <code>brew install</code> pürüzsüz olduğunda çık. Gün 00:01 PT (10:01 TR) başlar; tüm gün aktif kalman şart.</p>
+
+    <h2>Tagline (≤60 karakter)</h2>
+    <div id="ph-tagline"></div>
+    <h2>Açıklama</h2>
+    <div id="ph-desc"></div>
+
+    <h2>Hazırlık kontrol listesi</h2>
+    <ol class="steps">
+      <li>Galeri görselleri: sağlık kartı + 2–3 uygulama ekran görüntüsü + promo videosu.</li>
+      <li>İlk yorum: "maker" olarak sen — kısa hikaye + geri bildirim daveti.</li>
+      <li>5–10 gerçek erken kullanıcıya haber ver (asla "oy ver" deme, "çıktı, bir bak" de).</li>
+      <li>Salı ya da Çarşamba seç; Pazartesi kalabalık, hafta sonu sakin.</li>
+      <li>Gün boyu her yoruma cevap; X'te ve LinkedIn'de "PH'deyiz" duyur.</li>
+    </ol>
+  </section>
+
+  <section class="page" data-title="Hashtag & Görseller" data-icon="◆">
+    <span class="eyebrow">Yardımcı</span>
+    <h1>Hashtag'ler, handle'lar & görseller</h1>
+
+    <h2>Hashtag seti (her postta 3–5, hepsi değil)</h2>
+    <div id="hashtags"></div>
+
+    <h2>Handle'lar</h2>
+    <ul>
+      <li><strong>@iamcanturk</strong> hesabından paylaş.</li>
+      <li>İlgili hesapları <em>ölçülü</em> etiketle — ör. container postlarında <strong>@Docker</strong>. Post başına bir etiket yeter, sıfır da olur.</li>
+      <li>Trivy/Grype gibi araçları etiketleme; gövdede dürüst kıyas olarak adıyla an.</li>
+    </ul>
+
+    <h2>Hangi görsel nerede?</h2>
+    <table>
+      <thead><tr><th>Görsel</th><th>Nerede</th><th>Dosya</th></tr></thead>
+      <tbody>
+        <tr><td>Sağlık kartı (16:9)</td><td>X 1. tweet, LinkedIn, PH galeri, link önizleme</td><td><code>web/assets/health-card.png</code></td></tr>
+        <tr><td>Genel bakış ekranı</td><td>X 6. tweet, Reddit, PH galeri</td><td><code>web/assets/app-overview.png</code></td></tr>
+        <tr><td>Bulgu detayı</td><td>"nasıl düzeltilir" anlatan post</td><td><code>web/assets/app-finding.png</code></td></tr>
+        <tr><td>Menubar popover</td><td>"her zaman açık" mesajı</td><td><code>web/assets/app-popover.png</code></td></tr>
+        <tr><td>Promo videosu (kare)</td><td>X akış videosu</td><td><code>marketing/promo-square.mp4</code></td></tr>
+        <tr><td>GitHub sosyal önizleme</td><td>GitHub Settings → Social preview</td><td><code>marketing/github-social.png</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page" data-title="Blog Yazısı (WordPress)" data-icon="✎">
+    <span class="eyebrow">İçerik</span>
+    <h1>Blog yazısı — WordPress'e hazır</h1>
+    <p class="lede">Aşağıdaki yazı Türkçe ve SEO'ya uygun. WordPress'te <strong>"Özel HTML" bloğu</strong> aç ve tek tıkla kopyaladığın HTML'i yapıştır — başlıklar, kod blokları ve linkler korunur.</p>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0">
+      <button class="copy" id="copy-blog-html" style="font-size:.85rem;padding:10px 16px">⧉ Blog HTML'ini kopyala (WordPress için)</button>
+      <button class="copy" id="copy-blog-text" style="font-size:.85rem;padding:10px 16px">⧉ Düz metni kopyala</button>
+    </div>
+
+    <div class="callout"><strong>SEO meta (WordPress/Yoast'a gir):</strong><br>
+      <strong>Başlık:</strong> DoctorDock: Docker ortamınız için çevrimdışı bir doktor<br>
+      <strong>Meta açıklama:</strong> DoctorDock, yerel Docker ortamınızı saniyeden kısa sürede, tamamen çevrimdışı tarayan açık kaynak bir CLI. Güvenlik açıkları, yapılandırma hataları ve boşa giden disk tek komutta.<br>
+      <strong>Odak anahtar kelime:</strong> Docker güvenliği · <strong>Etiketler:</strong> docker, güvenlik, devops, açık kaynak, cli
+    </div>
+
+    <article class="article" id="blog">
+      <h1>DoctorDock: Docker'ınız için bir doktor</h1>
+      <p class="meta">Can Türk · 14 Ağustos 2026 · docker, güvenlik, devops, açık kaynak</p>
+
+      <p>Docker'la çalışan herkesin makinesinde zamanla sessizce biriken bir tortu vardır. Bir akşam hızlıca ayağa kaldırdığınız <code>--privileged</code> konteyner. Test için <code>0.0.0.0</code> üzerinde açtığınız ve kapatmayı unuttuğunuz bir Postgres portu. Üç ay önce denediğiniz bir imajın artık kimsenin çekmediği katmanları. Silinmemiş volume'lar, restart döngüsünde dönüp duran bir servis, <code>~/.aws</code>'i konteynerin içine mount eden bir compose satırı.</p>
+      <p>Bunların hiçbiri o an alarm çalmaz. Kod derlenir, uygulama açılır, iş yürür. Ama bu küçük kararlar aylar içinde birikir ve bir gün ya diskiniz dolar ya da güvenlik gözden geçirmesinde birinin gözüne batar. İşte <strong>DoctorDock</strong> tam bu görünmez tortuyu görünür kılmak için yazıldı.</p>
+
+      <h2>Problem: kimse Docker yapılandırmasına bakmıyor</h2>
+      <p>CVE taraması artık çözülmüş bir problem. Trivy ve Grype imajlarınızdaki paket zafiyetlerini gayet iyi buluyor. Ama bir zafiyet veritabanına ve dolayısıyla ağ bağlantısına ihtiyaç duyuyorlar.</p>
+      <p>Asıl boşluk <strong>yapılandırma katmanında</strong>. Konteynerin root olarak mı çalıştığı, socket'in mount edilip edilmediği, hangi portun dışarı açıldığı, healthcheck'in olup olmadığı. Bunlar imajın içindeki bir paketin sürümüyle ilgili değil, o konteyneri <em>nasıl çalıştırdığınızla</em> ilgili. Ve bu katmana kimse bakmıyor.</p>
+      <p>Mevcut alternatifler de pek yardımcı olmuyor. Docker Bench beş bin satırlık bir shell script. <code>docker system df</code> size disk kullanımını söyler ama hiçbir yorum yapmaz, "şu volume gereksiz" demez. DoctorDock tek bir soruya cevap vermek için var: <strong>"Bu Docker ortamında şu an neyin yanlış olduğu ve ne yapmam gerektiği?"</strong></p>
+
+      <h2>DoctorDock nedir</h2>
+      <p>DoctorDock, yerel Docker ortamınızı tarayan <strong>yerel öncelikli (local-first)</strong> bir komut satırı aracı. Yanında native bir macOS menubar uygulaması da geliyor. Güvenlik problemlerini, yapılandırma hatalarını ve geri kazanılabilir diski (boşa giden kaynakları) bulup önünüze koyar. Saniyenin altında, tamamen çevrimdışı.</p>
+      <p>Go ile yazıldı, tek binary. Hesap açmanız gerekmiyor, MIT lisansıyla açık kaynak. Hem <code>doctordock</code> hem de kısa takma adı <code>ddock</code> kuruluyor.</p>
+      <p>Ne kadar hızlı olduğunu somutlaştırayım: yaklaşık 26 konteyner, 29 imaj, 29 volume ve 12 ağdan oluşan bir ortamın tam taraması bende yaklaşık <strong>550 ms</strong> sürüyor. Yani <code>docker ps</code> yazıp çıktısına bakacağınız süreden daha kısa.</p>
+
+      <h2>Neden farklı: AI yok, ağ yok, telemetri yok</h2>
+      <p>Bu araç bir "AI-powered" güvenlik ürünü değil. Bunu bir eksiklik değil, tasarım kararı olarak söylüyorum.</p>
+      <h3>Yapay zeka yok</h3>
+      <p>Her bulgu, okuyabileceğiniz deterministik Go kodu. Aynı ortam her zaman aynı çıktıyı üretir. Halüsinasyon yok, "bugün böyle dedi yarın başka türlü" yok. Bir kuralın neyi neden işaretlediğini merak ederseniz kaynağına bakabilirsiniz. İleride AI bu işin içine girerse görevi yalnızca sonuçları <em>açıklamak</em> olur, sonuçları <em>üretmek</em> asla.</p>
+      <h3>Tamamen çevrimdışı</h3>
+      <p>Sıfır ağ çağrısı. Senkronize edilecek bir CVE beslemesi yok, hesap yok, güncelleme kontrolü yok. Air-gapped bir makinede de, kilitli bir CI ortamında da aynı şekilde çalışır. DoctorDock yalnızca tek bir yerel soketi açar, Docker'ınkini, başka hiçbir şeyi.</p>
+      <h3>Telemetri yok</h3>
+      <p>Hiçbir şey toplanmıyor, iletilmiyor, eve telefon açılmıyor. Ne taradığınız sizde kalır.</p>
+      <h3>Sırlar yerinde kalır</h3>
+      <p>Konteyner ortam değişkenleri yalnızca <strong>anahtar adı</strong> olarak okunur, değerleri bir rapora ulaşabilecek hiçbir biçimde belleğe girmez. Bu da DoctorDock'u production'a karşı çalıştırmayı güvenli kılar. <code>DATABASE_PASSWORD</code> diye bir anahtarın var olduğunu görürsünüz ama değerini asla.</p>
+
+      <h2>Nasıl kurulur</h2>
+      <p>macOS'ta Homebrew ile:</p>
+      <pre><code>brew install iamcanturk/tap/doctordock</code></pre>
+      <p>Her platformda Go ile:</p>
+      <pre><code>go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest</code></pre>
+      <p>CI veya konteyner içinde, socket'i salt okunur bağlayarak:</p>
+      <pre><code>docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro ghcr.io/iamcanturk/doctordock</code></pre>
+
+      <h2>Örnek çıktı</h2>
+      <p>Kurduktan sonra tek yapmanız gereken taramak. DoctorDock ortamınıza bir sağlık puanı verir (100 üzerinden) ve bulguları önem sırasına göre listeler:</p>
+      <pre><code>HEALTH SCORE  37/100  poor
+
+  1 CRITICAL · 17 HIGH · 6 MEDIUM · 22 LOW
+
+  DD005  CRITICAL  Docker socket bir konteynere mount edilmis
+  DD001  HIGH      Konteyner root olarak calisiyor
+  DD006  MEDIUM    Veritabani portu 0.0.0.0 uzerinde yayinlanmis
+  DD007  LOW       Healthcheck tanimli degil
+  DD015  INFO      Kullanilmayan imaj</code></pre>
+      <p>Herhangi bir kural kendini anlatır: <code>doctordock explain DD005</code>. Bu komut size o kuralın ne aradığını, neden önemli olduğunu, somut bir saldırı senaryosunu, kopyalayıp yapıştırabileceğiniz bir çözümü ve ne zaman güvenle görmezden gelinebileceğini verir.</p>
+
+      <h2>Güvenli temizlik</h2>
+      <p>Temizlik komutları insanları haklı olarak korkutur; bir yanlış flag'le aylık verinizi uçurabilirsiniz. DoctorDock bu yüzden varsayılan olarak hiçbir şey silmez:</p>
+      <pre><code>doctordock cleanup            # kuru calisma: sadece ne silinecegini gosterir
+doctordock cleanup --apply    # gercekten uygular</code></pre>
+      <p><code>--volumes</code> dışında hiçbir flag bir volume'u seçemez, <code>--all</code> bile. Çünkü bir imajı yeniden çekebilirsiniz ama bir volume'daki veri gittiğinde geri gelmez. Kazara hiçbir şey silinmez.</p>
+
+      <h2>Kapanış</h2>
+      <p>DoctorDock, Docker ortamınızın aylar içinde biriktirdiği görünmez riskleri saniyeden kısa sürede, hiçbir veriyi dışarı sızdırmadan önünüze koyan küçük bir araç. Bir doktor gibi: bakar, teşhis koyar, ne yapmanız gerektiğini anlatır ve kararı size bırakır.</p>
+      <ul>
+        <li>GitHub'da yıldız: <a href="https://github.com/iamcanturk/DoctorDock">github.com/iamcanturk/DoctorDock</a></li>
+        <li>Detaylar ve indirme: <a href="https://doctordock.iamcanturk.dev">doctordock.iamcanturk.dev</a></li>
+        <li>Yeni sürümler için X'te <a href="https://x.com/iamcanturk">@iamcanturk</a></li>
+      </ul>
+      <p>Bir tarama çalıştırın ve makinenizin gerçekte hangi puanı aldığını görün. Muhtemelen sandığınızdan düşük çıkacak, ve ilk kez tam olarak ne yapacağınızı bileceksiniz.</p>
+    </article>
+  </section>
+
+  <div class="pager">
+    <button id="prev">← Önceki</button>
+    <button id="next">Sonraki →</button>
+  </div>
+</main>
+
+<script>
+function makeSnippet(target, title, text, opts){
+  opts = opts || {};
+  const el = document.getElementById(target);
+  if(!el) return;
+  const wrap = document.createElement("div");
+  wrap.className = "snippet";
+  const head = document.createElement("header");
+  const t = document.createElement("span"); t.className = "t"; t.textContent = title;
+  head.appendChild(t);
+  if(opts.count){
+    const c = document.createElement("span"); c.className = "char";
+    c.textContent = text.length + " karakter"; head.appendChild(c);
+  }
+  const btn = document.createElement("button");
+  btn.className = "copy"; btn.type = "button"; btn.textContent = "⧉ Kopyala";
+  head.appendChild(btn);
+  const body = document.createElement("div");
+  body.className = opts.mono ? "body mono" : "body";
+  body.textContent = text;
+  wrap.appendChild(head); wrap.appendChild(body);
+  btn.addEventListener("click", function(){ copyText(text, btn); });
+  el.appendChild(wrap);
+}
+function copyText(text, btn){
+  navigator.clipboard.writeText(text).then(function(){
+    const old = btn.textContent; btn.textContent = "✓ Kopyalandı"; btn.classList.add("done");
+    setTimeout(function(){ btn.textContent = old; btn.classList.remove("done"); }, 1500);
+  }).catch(function(){ btn.textContent = "⌘C ile kopyala"; });
+}
+
+const thread = [
+"Your Docker setup has problems you can't see.\n\nA container mounted to host root. A database open to the whole network. A dozen containers running as root. 12 GB of images nothing uses.\n\nDoctorDock finds all of it in ~550ms. Fully offline.\n\nA doctor for your Docker.",
+"No AI.\n\nEvery finding is deterministic Go you can read. Same environment in, same report out. No model, no vibes, no \"this might be insecure.\"\n\nAn AI-free dev tool, on purpose.",
+"Fully offline.\n\nZero network calls. No telemetry. No account. No CVE feed to sync.\n\nIt runs air-gapped and inside a locked-down CI runner. Nothing about your environment ever leaves the machine it's on.",
+"Privacy-first.\n\nIt reads container env vars as key NAMES only — the values never enter a report. Safe to point at production.\n\nThe shareable score card is aggregate numbers only: no container name, image tag, port, or path.",
+"Guarded cleanup.\n\ndoctordock cleanup is a dry run by default. Removing anything needs --apply. A Docker volume is never touched unless you ask for it explicitly — and then you type \"delete\", not \"y\".\n\nEverything else can be recreated. A volume's data can't.",
+"Fast, and it ends with a number you can act on.\n\nA full scan — containers, images, volumes, networks — takes ~550ms and produces a Docker health score out of 100.\n\nThere's a native macOS menubar app too, showing the score, colour-coded.",
+"How it works: it reads your local Docker socket, runs 18 config rules, and prints what's wrong plus how to fix each one.\n\nIt's not a CVE scanner — that's Trivy/Grype. This is the config layer they skip.\n\nmacOS:\nbrew install iamcanturk/tap/doctordock",
+"Free and open source, MIT. No account, nothing to sign up for.\n\nCode: https://github.com/iamcanturk/DoctorDock\nSite: https://doctordock.iamcanturk.dev\n\nIf you run Docker locally, point it at your machine and tell me what it finds."
+];
+thread.forEach(function(t,i){
+  const label = i===0 ? "Tweet 1 — Kanca · sağlık kartını ekle"
+    : i===5 ? "Tweet 6 — uygulama ekranını ekle"
+    : i===7 ? "Tweet 8 — CTA (linkler burada)"
+    : "Tweet " + (i+1);
+  makeSnippet("x-thread", label, t, {count:true});
+});
+makeSnippet("x-single","Tek tweet",
+"DoctorDock — a doctor for your Docker.\n\nScans your local Docker for security problems, misconfigs, and reclaimable disk in ~550ms. Fully offline, no AI, no telemetry, no account. Open source (MIT).\n\nbrew install iamcanturk/tap/doctordock\n\nhttps://github.com/iamcanturk/DoctorDock", {count:true});
+makeSnippet("x-tr","Türkçe — kanca tweet",
+"Docker ortamınızda göremediğiniz sorunlar var: host'a bağlı bir socket, tüm ağa açık bir veritabanı, root ile çalışan bir sürü container, kimsenin kullanmadığı 12 GB imaj.\n\nDoctorDock hepsini saniyenin altında bulur. Tamamen çevrimdışı.\n\nDocker'ınız için bir doktor.", {count:true});
+makeSnippet("x-tr","Türkçe — tek tweet",
+"DoctorDock — Docker'ınız için bir doktor.\n\nYerel Docker ortamınızı güvenlik sorunları, hatalı yapılandırma ve boşa giden disk için ~550ms'de tarar. Tamamen çevrimdışı, yapay zeka yok, telemetri yok. Açık kaynak (MIT).\n\nbrew install iamcanturk/tap/doctordock", {count:true});
+
+makeSnippet("hn-title","Başlık","Show HN: DoctorDock – find Docker misconfigs and wasted disk, offline, no AI");
+makeSnippet("hn-comment","İlk yorum",
+"Author here. I built this because Docker makes it easy to run things and hard to notice what you're already running. Six months into a project my machine had a container mounting the Docker socket (that's host root), a couple of databases published on 0.0.0.0, a dozen containers running as root, and gigabytes of images nothing referenced. None of it was visible until I went looking.\n\nThere are good tools for parts of this. Trivy and Grype scan images for CVEs — DoctorDock deliberately does not, that's a solved problem and it needs a network. This looks at the configuration layer instead: how your containers are actually wired up, and what disk you can reclaim. It ends with a health score out of 100.\n\nTwo constraints I cared about:\n- No AI. Every finding is deterministic Go you can read; same input, same output. Nothing is guessed.\n- Fully offline. Zero network calls, no telemetry, no account. It runs air-gapped and in CI. Env var values are never read — key names only — so it's safe to point at production.\n\nCleanup is a dry run unless you pass --apply, and a volume is never removed unless you ask for it by name. A full scan takes ~550ms.\n\nIt's MIT, there's a CLI and a native macOS menubar app. macOS install is brew install iamcanturk/tap/doctordock.\n\nRepo: https://github.com/iamcanturk/DoctorDock\nI'd genuinely like to hear what it finds on your machine, and where the rules are wrong or noisy — false positives are the thing I most want to fix.");
+
+makeSnippet("rd-docker-title","Başlık","I got tired of not knowing what was wrong with my local Docker, so I wrote a scanner for it");
+makeSnippet("rd-docker-body","Gövde",
+"After a while every dev machine accumulates the same mess: a container with the Docker socket mounted, a database published on 0.0.0.0 instead of 127.0.0.1, a handful of containers running as root, and images nothing references eating disk. docker system df tells you the disk part with no opinion; nothing tells you the rest in one shot.\n\nSo I built DoctorDock. It reads your local Docker socket, runs 18 configuration rules, and prints what's wrong with a concrete fix for each, plus a health score out of 100. It also shows what's safely reclaimable — cleanup is a dry run until you pass --apply, and volumes are never touched unless you explicitly ask.\n\nDeliberately NOT a CVE scanner — use Trivy/Grype for images. This is the config layer they don't look at, which is also why it can stay fully offline: no network calls, no telemetry, no account. Deterministic Go, no AI. Env var values are never read (key names only).\n\nmacOS: brew install iamcanturk/tap/doctordock\nOne static binary otherwise. MIT.\n\nRepo: https://github.com/iamcanturk/DoctorDock\n\nCurious what it flags for people here — and where a rule is too noisy.");
+makeSnippet("rd-self-title","Başlık","A local, offline scanner that tells you what's misconfigured (and what's wasting disk) in your Docker setup");
+makeSnippet("rd-self-body","Gövde",
+"If you self-host a stack of containers, you've probably got things running that you'd rather not: a service with the Docker socket mounted, a Postgres or Redis bound to 0.0.0.0 and reachable from your LAN, containers running as root, plus old images and unused volumes quietly filling the disk.\n\nDoctorDock scans your local Docker and reports exactly that — security misconfigs, risky exposure, and reclaimable space — with a fix for each finding and a health score out of 100. A full scan is about half a second.\n\nFor a self-hosting crowd the design might matter to you: it's fully offline (zero network calls, no telemetry, no account, runs air-gapped), it's deterministic with no AI in the analysis path, and it never reads env var values — only the key names — so it's safe to run against a live box. Cleanup won't delete anything without --apply, and a volume is never removed unless you ask for it by name.\n\nMIT, self-contained binary, native macOS menubar app too.\nmacOS: brew install iamcanturk/tap/doctordock\nhttps://github.com/iamcanturk/DoctorDock\n\nWould love feedback from people running bigger home stacks than mine.");
+
+makeSnippet("li-post","LinkedIn postu",
+"Docker makes it easy to run things and hard to notice what you're already running.\n\nSix months into any project, the typical machine has picked up a few quiet risks: a container with the Docker socket mounted (effectively host root), a database published to the whole network, a dozen containers running as root, and gigabytes of images nothing references. None of it is visible until something breaks or somebody scans you.\n\nSo I built DoctorDock — a local-first tool that scans your Docker environment and reports the security problems, misconfigurations, and reclaimable disk, then gives you a health score out of 100. A full scan takes about half a second.\n\nTwo decisions I stand behind: no AI in the analysis path — every finding is deterministic code you can read — and fully offline, with no telemetry and no account. It's not a CVE scanner; it covers the configuration layer that Trivy and Grype don't.\n\nIt's free and open source under MIT. If you work with Docker, I'd value your feedback.\n\nCode: https://github.com/iamcanturk/DoctorDock");
+
+makeSnippet("ph-tagline","Tagline","A doctor for your Docker — offline, no AI, open source");
+makeSnippet("ph-desc","Açıklama",
+"DoctorDock scans your local Docker environment for security problems, misconfigurations, and reclaimable disk in about half a second — then gives you a health score out of 100 you can share. It's fully offline with no AI, no telemetry, and no account: deterministic Go you can read, safe to point at production. Not a CVE scanner (that's Trivy/Grype) — it covers the configuration layer they skip. Free and open source, MIT, with a native macOS menubar app.");
+
+makeSnippet("hashtags","Yeniden kullanılabilir set","#Docker #DevOps #DevSecOps #OpenSource #ContainerSecurity #SelfHosted #CLI #Golang #InfoSec");
+
+function serializeChildren(el){
+  const ser = new XMLSerializer();
+  return Array.prototype.map.call(el.childNodes, function(n){ return ser.serializeToString(n); }).join("").trim();
+}
+document.getElementById("copy-blog-html").addEventListener("click", function(e){
+  copyText(serializeChildren(document.getElementById("blog")), e.currentTarget);
+});
+document.getElementById("copy-blog-text").addEventListener("click", function(e){
+  copyText(document.getElementById("blog").innerText.trim(), e.currentTarget);
+});
+
+const pages = Array.prototype.slice.call(document.querySelectorAll(".page"));
+const nav = document.getElementById("nav");
+let cur = 0;
+pages.forEach(function(p,i){
+  const li = document.createElement("li");
+  const b = document.createElement("button"); b.type = "button";
+  const n = document.createElement("span"); n.className = "n";
+  n.textContent = p.dataset.icon || (i+1);
+  b.appendChild(n); b.appendChild(document.createTextNode(p.dataset.title));
+  b.addEventListener("click", function(){ go(i); });
+  li.appendChild(b); nav.appendChild(li);
+});
+const navBtns = Array.prototype.slice.call(nav.querySelectorAll("button"));
+function go(i){
+  cur = Math.max(0, Math.min(pages.length-1, i));
+  pages.forEach(function(p,k){ p.classList.toggle("active", k===cur); });
+  navBtns.forEach(function(b,k){ b.classList.toggle("active", k===cur); });
+  document.getElementById("prev").disabled = cur===0;
+  document.getElementById("next").disabled = cur===pages.length-1;
+  window.scrollTo({top:0});
+}
+document.getElementById("prev").addEventListener("click", function(){ go(cur-1); });
+document.getElementById("next").addEventListener("click", function(){ go(cur+1); });
+addEventListener("keydown", function(e){
+  if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
+  if(e.key==="ArrowRight") go(cur+1);
+  if(e.key==="ArrowLeft") go(cur-1);
+});
+go(0);
+</script>
+</body>
+</html>
