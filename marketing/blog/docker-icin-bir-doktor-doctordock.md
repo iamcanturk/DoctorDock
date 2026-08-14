@@ -13,6 +13,9 @@ Docker'la çalışan herkesin makinesinde zamanla sessizce biriken bir tortu var
 
 Bunların hiçbiri o an alarm çalmaz. Kod derlenir, uygulama açılır, iş yürür. Ama bu küçük kararlar aylar içinde birikir ve bir gün ya diskiniz dolar ya da güvenlik gözden geçirmesinde birinin gözüne batar. İşte **DoctorDock** tam bu görünmez tortuyu görünür kılmak için yazıldı.
 
+![DoctorDock sağlık kartı: 100 üzerinden Docker sağlık puanı ve kaynak sayıları](https://doctordock.iamcanturk.dev/assets/health-card.png)
+*DoctorDock'un paylaşılabilir sağlık kartı — yalnızca toplam sayılar, hiçbir konteyner adı veya port sızmaz.*
+
 ## Problem: kimse Docker yapılandırmasına bakmıyor
 
 CVE taraması artık çözülmüş bir problem. Trivy ve Grype imajlarınızdaki paket zafiyetlerini gayet iyi buluyor. Ama bir zafiyet veritabanına ve dolayısıyla ağ bağlantısına ihtiyaç duyuyorlar.
@@ -24,6 +27,9 @@ Mevcut alternatifler de pek yardımcı olmuyor. Docker Bench beş bin satırlık
 ## DoctorDock nedir
 
 DoctorDock, yerel Docker ortamınızı tarayan **yerel öncelikli (local-first)** bir komut satırı aracı. Yanında native bir macOS menubar uygulaması da geliyor. Güvenlik problemlerini, yapılandırma hatalarını ve geri kazanılabilir diski (boşa giden kaynakları) bulup önünüze koyar. Saniyenin altında, tamamen çevrimdışı.
+
+![DoctorDock macOS uygulaması: sağlık puanı, kaynak sayıları ve önce neyi düzeltmeli](https://doctordock.iamcanturk.dev/assets/app-overview.png)
+*Native macOS menubar uygulaması — CLI ile birebir aynı motoru kullanır.*
 
 Go ile yazıldı, tek binary. Hesap açmanız gerekmiyor, MIT lisansıyla açık kaynak. Hem `doctordock` hem de kısa takma adı `ddock` kuruluyor.
 
@@ -98,6 +104,9 @@ doctordock explain DD005
 ```
 
 Bu komut size o kuralın ne aradığını, neden önemli olduğunu, somut bir saldırı senaryosunu, kopyalayıp yapıştırabileceğiniz bir çözümü, ne zaman güvenle görmezden gelinebileceğini ve konuyla ilgili kaynak linklerini verir. Yani sadece "burada bir sorun var" demiyor, o sorunu kapatmayı da öğretiyor.
+
+![Terminalde DoctorDock: komut listesi ve doctordock explain DD005 çıktısı](https://doctordock.iamcanturk.dev/assets/demo.gif)
+*Her kural kendini anlatır: `doctordock explain DD005` saldırı senaryosunu, çözümü ve kaynakları gösterir.*
 
 ## Kurallar: güvenlik, yapılandırma, kaynak, temizlik
 

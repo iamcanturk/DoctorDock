@@ -156,6 +156,10 @@
       <strong>Nasıl kullanılır:</strong> Soldaki sayfalardan ilerle. Her metnin sağ üstündeki <em>Kopyala</em> butonu metni panoya alır — doğrudan platforma yapıştır. Metinler ABD kitlesi için <strong>İngilizce</strong>, açıklamalar Türkçe. Türkçe tweet varyantları da var.
     </div>
 
+    <div class="callout good">
+      <strong>Lansmana hazır — hepsi yeşil ✅</strong> v0.1.0 yayında. <code>brew install iamcanturk/tap/doctordock</code>, <code>go install …@latest</code> ve <code>docker run ghcr.io/iamcanturk/doctordock</code> (public) çalışıyor; GitHub sosyal önizleme yüklendi; landing canlı. Bu plandaki her adımı bugün uygulamaya başlayabilirsin — teknik bir engel kalmadı.
+    </div>
+
     <h2>Tek cümlede konumlandırma</h2>
     <div class="card">
       <p style="font-size:1.15rem;margin:0"><strong>DoctorDock</strong> — Docker ortamını güvenlik, hatalı yapılandırma ve boşa giden disk için <strong>saniyenin altında, tamamen çevrimdışı</strong> tarayan; <strong>yapay zeka içermeyen</strong>, açık kaynak bir araç. "Docker'ınız için bir doktor."</p>
@@ -165,6 +169,7 @@
     <div class="grid c2">
       <div class="card"><span class="pill">Görsel</span><h3 style="margin-top:10px">Sağlık kartı (16:9)</h3><p class="muted">Skor + kaynak sayıları, sadece toplamlar. X ve link önizlemesi için ideal. <code>web/assets/health-card.png</code></p></div>
       <div class="card"><span class="pill">Görsel</span><h3 style="margin-top:10px">Uygulama ekran görüntüleri</h3><p class="muted">Genel bakış, bulgu detayı, menubar. <code>web/assets/app-*.png</code></p></div>
+      <div class="card"><span class="pill">GIF</span><h3 style="margin-top:10px">Terminal demo GIF</h3><p class="muted">~11 sn: komut listesi + <code>explain DD005</code>. X ve blog için ideal. <code>web/assets/demo.gif</code></p></div>
       <div class="card"><span class="pill">Video</span><h3 style="margin-top:10px">Kare promo videosu</h3><p class="muted">~16 sn, akışta oynatmak için. <code>marketing/promo-square.mp4</code></p></div>
       <div class="card"><span class="pill">Site</span><h3 style="margin-top:10px">Landing</h3><p class="muted"><a href="https://doctordock.iamcanturk.dev">doctordock.iamcanturk.dev</a> — SEO + FAQ + yapısal veri hazır.</p></div>
     </div>
@@ -333,7 +338,7 @@
 
     <h2>Hazırlık kontrol listesi</h2>
     <ol class="steps">
-      <li>Galeri görselleri: sağlık kartı + 2–3 uygulama ekran görüntüsü + promo videosu.</li>
+      <li>Galeri görselleri: sağlık kartı + 2–3 uygulama ekran görüntüsü + demo GIF + promo videosu.</li>
       <li>İlk yorum: "maker" olarak sen — kısa hikaye + geri bildirim daveti.</li>
       <li>5–10 gerçek erken kullanıcıya haber ver (asla "oy ver" deme, "çıktı, bir bak" de).</li>
       <li>Salı ya da Çarşamba seç; Pazartesi kalabalık, hafta sonu sakin.</li>
@@ -361,6 +366,7 @@
       <tbody>
         <tr><td>Sağlık kartı (16:9)</td><td>X 1. tweet, LinkedIn, PH galeri, link önizleme</td><td><code>web/assets/health-card.png</code></td></tr>
         <tr><td>Genel bakış ekranı</td><td>X 6. tweet, Reddit, PH galeri</td><td><code>web/assets/app-overview.png</code></td></tr>
+        <tr><td>Terminal demo (GIF)</td><td>X thread, blog, dev.to, Reddit</td><td><code>web/assets/demo.gif</code></td></tr>
         <tr><td>Bulgu detayı</td><td>"nasıl düzeltilir" anlatan post</td><td><code>web/assets/app-finding.png</code></td></tr>
         <tr><td>Menubar popover</td><td>"her zaman açık" mesajı</td><td><code>web/assets/app-popover.png</code></td></tr>
         <tr><td>Promo videosu (kare)</td><td>X akış videosu</td><td><code>marketing/promo-square.mp4</code></td></tr>
@@ -392,6 +398,11 @@
       <p>Docker'la çalışan herkesin makinesinde zamanla sessizce biriken bir tortu vardır. Bir akşam hızlıca ayağa kaldırdığınız <code>--privileged</code> konteyner. Test için <code>0.0.0.0</code> üzerinde açtığınız ve kapatmayı unuttuğunuz bir Postgres portu. Üç ay önce denediğiniz bir imajın artık kimsenin çekmediği katmanları. Silinmemiş volume'lar, restart döngüsünde dönüp duran bir servis, <code>~/.aws</code>'i konteynerin içine mount eden bir compose satırı.</p>
       <p>Bunların hiçbiri o an alarm çalmaz. Kod derlenir, uygulama açılır, iş yürür. Ama bu küçük kararlar aylar içinde birikir ve bir gün ya diskiniz dolar ya da güvenlik gözden geçirmesinde birinin gözüne batar. İşte <strong>DoctorDock</strong> tam bu görünmez tortuyu görünür kılmak için yazıldı.</p>
 
+      <figure style="margin:1.75rem 0;text-align:center">
+        <img src="https://doctordock.iamcanturk.dev/assets/health-card.png" alt="DoctorDock sağlık kartı: 100 üzerinden Docker sağlık puanı ve kaynak sayıları" style="width:100%;max-width:900px;border-radius:10px;display:inline-block">
+        <figcaption style="font-size:.9em;color:#7f93b0;margin-top:.5rem">DoctorDock'un paylaşılabilir sağlık kartı — yalnızca toplam sayılar, hiçbir konteyner adı veya port sızmaz.</figcaption>
+      </figure>
+
       <h2>Problem: kimse Docker yapılandırmasına bakmıyor</h2>
       <p>CVE taraması artık çözülmüş bir problem. Trivy ve Grype imajlarınızdaki paket zafiyetlerini gayet iyi buluyor. Ama bir zafiyet veritabanına ve dolayısıyla ağ bağlantısına ihtiyaç duyuyorlar.</p>
       <p>Asıl boşluk <strong>yapılandırma katmanında</strong>. Konteynerin root olarak mı çalıştığı, socket'in mount edilip edilmediği, hangi portun dışarı açıldığı, healthcheck'in olup olmadığı. Bunlar imajın içindeki bir paketin sürümüyle ilgili değil, o konteyneri <em>nasıl çalıştırdığınızla</em> ilgili. Ve bu katmana kimse bakmıyor.</p>
@@ -399,6 +410,11 @@
 
       <h2>DoctorDock nedir</h2>
       <p>DoctorDock, yerel Docker ortamınızı tarayan <strong>yerel öncelikli (local-first)</strong> bir komut satırı aracı. Yanında native bir macOS menubar uygulaması da geliyor. Güvenlik problemlerini, yapılandırma hatalarını ve geri kazanılabilir diski (boşa giden kaynakları) bulup önünüze koyar. Saniyenin altında, tamamen çevrimdışı.</p>
+
+      <figure style="margin:1.75rem 0;text-align:center">
+        <img src="https://doctordock.iamcanturk.dev/assets/app-overview.png" alt="DoctorDock macOS uygulaması: sağlık puanı, kaynak sayıları ve önce neyi düzeltmeli" style="width:100%;max-width:820px;border-radius:10px;display:inline-block">
+        <figcaption style="font-size:.9em;color:#7f93b0;margin-top:.5rem">Native macOS menubar uygulaması — CLI ile birebir aynı motoru kullanır.</figcaption>
+      </figure>
       <p>Go ile yazıldı, tek binary. Hesap açmanız gerekmiyor, MIT lisansıyla açık kaynak. Hem <code>doctordock</code> hem de kısa takma adı <code>ddock</code> kuruluyor.</p>
       <p>Ne kadar hızlı olduğunu somutlaştırayım: yaklaşık 26 konteyner, 29 imaj, 29 volume ve 12 ağdan oluşan bir ortamın tam taraması bende yaklaşık <strong>550 ms</strong> sürüyor. Yani <code>docker ps</code> yazıp çıktısına bakacağınız süreden daha kısa.</p>
 
@@ -433,6 +449,11 @@
   DD007  LOW       Healthcheck tanimli degil
   DD015  INFO      Kullanilmayan imaj</code></pre>
       <p>Herhangi bir kural kendini anlatır: <code>doctordock explain DD005</code>. Bu komut size o kuralın ne aradığını, neden önemli olduğunu, somut bir saldırı senaryosunu, kopyalayıp yapıştırabileceğiniz bir çözümü ve ne zaman güvenle görmezden gelinebileceğini verir.</p>
+
+      <figure style="margin:1.75rem 0;text-align:center">
+        <img src="https://doctordock.iamcanturk.dev/assets/demo.gif" alt="Terminalde DoctorDock: komut listesi ve doctordock explain DD005 çıktısı — saldırı senaryosu, çözümler ve kaynaklar" style="width:100%;max-width:900px;border-radius:10px;display:inline-block">
+        <figcaption style="font-size:.9em;color:#7f93b0;margin-top:.5rem">Her kural kendini anlatır: <code>doctordock explain DD005</code> saldırı senaryosunu ve çözümü gösterir.</figcaption>
+      </figure>
 
       <h2>Güvenli temizlik</h2>
       <p>Temizlik komutları insanları haklı olarak korkutur; bir yanlış flag'le aylık verinizi uçurabilirsiniz. DoctorDock bu yüzden varsayılan olarak hiçbir şey silmez:</p>
