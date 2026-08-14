@@ -127,19 +127,21 @@
       color: var(--muted); padding: 7px 13px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
     .badge svg { width: 15px; height: 15px; opacity: .85; color: var(--accent); }
 
-    /* Hero visual: mascot floating over the card */
+    /* Hero visual: the animated mascot */
     .hero-visual { position: relative; display: grid; place-items: center; }
-    .hero-visual .card-img {
-      width: 100%; border-radius: 20px; border: 1px solid var(--line);
-      box-shadow: 0 40px 90px -34px color-mix(in srgb, var(--accent) 55%, black);
+    .hero-video {
+      width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 22px;
+      border: 1px solid var(--line); background: #eef2f7;
+      box-shadow: 0 40px 90px -34px color-mix(in srgb, var(--accent) 60%, black);
     }
-    .hero-visual .mascot {
-      position: absolute; inset-block-start: -46px; inset-inline-end: -22px;
-      width: clamp(120px, 22vw, 190px); filter: drop-shadow(0 14px 24px rgba(0,0,0,.4));
-      animation: float 5.5s ease-in-out infinite;
-    }
-    .hero-visual figcaption { position: absolute; inset-block-end: -30px; inset-inline: 0;
-      text-align: center; color: var(--faint); font-size: .82rem; }
+    /* The showcase card in the closing section */
+    .showcase { display: grid; gap: clamp(28px, 5vw, 48px); align-items: center;
+      grid-template-columns: 1fr; margin-block-end: clamp(36px, 5vw, 56px); }
+    @media (min-width: 860px) { .showcase { grid-template-columns: 1fr 1fr; } }
+    .showcase img { width: 100%; border-radius: 18px; border: 1px solid var(--line);
+      box-shadow: 0 30px 70px -30px color-mix(in srgb, var(--accent) 45%, black); }
+    .showcase h3 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; margin-block-end: 12px; }
+    .showcase p { color: var(--muted); font-size: 1.05rem; }
 
     /* Code block */
     .code { display: flex; align-items: center; gap: 12px; background: var(--surface);
@@ -285,10 +287,10 @@
     </div>
 
     <figure class="hero-visual reveal in d2">
-      <img class="mascot" src="assets/mascot.png" alt="The DoctorDock robot mascot, tidying Docker containers.">
-      <img class="card-img" src="assets/health-card.png" width="1080" height="1080"
-           alt="A DoctorDock health card: score 42 of 100, with container, image, volume and network counts and a severity breakdown.">
-      <figcaption>The shareable card the app makes — numbers only, never a name or a port.</figcaption>
+      <video class="hero-video" autoplay muted loop playsinline
+             poster="assets/video-poster.jpg" aria-label="The DoctorDock mascot in motion">
+        <source src="assets/video.mp4" type="video/mp4">
+      </video>
     </figure>
   </div>
 </header>
@@ -361,6 +363,15 @@
 
 <section>
   <div class="wrap">
+    <div class="showcase reveal">
+      <img src="assets/health-card.png" width="1080" height="1080"
+           alt="A DoctorDock health card: score 42 of 100 with resource counts and a severity breakdown.">
+      <div>
+        <span class="kicker" style="color:var(--accent)">Show it off</span>
+        <h3>Post your Docker health.</h3>
+        <p>One click turns a scan into a card you can share — the score, resource counts and severity breakdown, and nothing else. No container name, image tag, port or path ever reaches it. Safe to post in public.</p>
+      </div>
+    </div>
     <div class="callout reveal">
       <h2>It never leaves your machine.</h2>
       <p>No AI to send your data to, no server to phone home, no account to create. DoctorDock reads the local Docker socket and writes to your terminal. That's the whole system. The shareable card carries only aggregate numbers — never a container name, an image tag, a port or a path.</p>
