@@ -1,41 +1,42 @@
 # DoctorDock landing page
 
-A single self-contained static page for **doctordock.iamcanturk.dev**. No build
-step, no dependencies — `index.html` plus one image.
+A self-contained static site for **doctordock.iamcanturk.dev** — one
+`index.html` with inline CSS/JS, plus images and the mascot. No build step.
 
 ## Files
 
 ```
 web/
-├── index.html            the whole page (HTML + CSS + a little JS, inline)
-└── assets/
-    └── health-card.png   the hero image (the app's shareable card)
+├── index.html            the whole page
+├── _headers              Cloudflare Pages caching + security headers
+└── assets/               mascot, framed app screenshots
 ```
 
 ## Preview locally
 
 ```bash
-cd web && python3 -m http.server 8799
-# open http://localhost:8799
+cd web && python3 -m http.server 8799   # http://localhost:8799
 ```
 
-## Deploy
+## Deploy — Cloudflare Pages
 
-It is a static folder, so any static host works. Point the host at `web/` (or
-copy its contents to the web root) and map the domain.
+The domain iamcanturk.dev is already on Cloudflare, so the custom domain is
+one click.
 
-- **Cloudflare Pages / Netlify / Vercel** — set the project root or publish
-  directory to `web`, no build command.
-- **GitHub Pages** — publish the `web/` folder.
-- **Own server** — copy `web/` to the document root.
+### Option A — connect the Git repo (auto-deploys on every push)
 
-## Updating the hero image
+1. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** →
+   **Connect to Git** → pick `iamcanturk/DoctorDock`.
+2. Build settings: **Framework preset: None**, **Build command: (empty)**,
+   **Build output directory: `web`**. Save and Deploy.
+3. Project → **Custom domains** → **Set up a domain** → `doctordock.iamcanturk.dev`.
+   Cloudflare adds the DNS record automatically.
 
-The hero is the app's own shareable card. Regenerate it from the macOS app:
+### Option B — deploy from this machine with Wrangler
 
 ```bash
-cd app/macos
-./scripts/build-app.sh
-./build/DoctorDock.app/Contents/MacOS/DoctorDock --render /tmp/dd
-cp /tmp/dd/share-card.png ../../web/assets/health-card.png
+npx wrangler login                                  # one-time, opens a browser
+npx wrangler pages deploy web --project-name doctordock
 ```
+
+Then add the custom domain as in step 3 above.
