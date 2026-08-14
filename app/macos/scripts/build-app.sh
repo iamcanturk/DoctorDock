@@ -65,6 +65,12 @@ if [ -f Resources/AppIcon.icns ]; then
   cp Resources/AppIcon.icns "$APP/Contents/Resources/"
 fi
 
+# The mascot is bundled so the share card can draw the logo. It is loaded at
+# runtime from Bundle.main, so it must live in Contents/Resources.
+if [ -f Resources/mascot.png ]; then
+  cp Resources/mascot.png "$APP/Contents/Resources/"
+fi
+
 echo "==> Signing"
 # Ad-hoc signature. It is enough for the app to run on the machine that built
 # it and for UNUserNotificationCenter to accept the bundle. Distributing to

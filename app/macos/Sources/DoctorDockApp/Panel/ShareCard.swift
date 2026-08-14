@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(AppKit)
+import AppKit
+#endif
 
 /// The shareable "here is my Docker" card.
 ///
@@ -8,6 +11,10 @@ import SwiftUI
 /// image tag, a port, a path, an environment key, or the daemon's host name.
 /// Everything it can render comes from `Summary` and the score — the resource
 /// lists are not even passed in.
+///
+/// The canvas is 16:9. That is the size X, LinkedIn and most feeds display a
+/// single image at without cropping, and it doubles as the site's link-preview
+/// (og:image / twitter:image) card.
 struct ShareCard: View {
     let score: Int
     let summary: Summary
@@ -15,8 +22,8 @@ struct ShareCard: View {
     var showPlatform = false
     var platform = ""
 
-    /// The canvas size. Square reads well on every network.
-    static let size = CGSize(width: 1080, height: 1080)
+    /// The canvas size. 16:9 reads best on X and as a link preview.
+    static let size = CGSize(width: 1600, height: 900)
 
     private var accent: Color { scoreColor(score) }
 
@@ -25,17 +32,18 @@ struct ShareCard: View {
             background
             VStack(spacing: 0) {
                 header
-                Spacer(minLength: 0)
-                hero
-                Spacer(minLength: 0)
-                metrics
-                    .padding(.top, 40)
+                Spacer(minLength: 20)
+                HStack(spacing: 68) {
+                    hero
+                    metrics
+                }
+                Spacer(minLength: 20)
                 severityRow
-                    .padding(.top, 26)
-                Spacer(minLength: 0)
+                Spacer(minLength: 20)
                 footer
             }
-            .padding(76)
+            .padding(.horizontal, 78)
+            .padding(.vertical, 64)
         }
         .frame(width: Self.size.width, height: Self.size.height)
         .environment(\.colorScheme, .dark)
@@ -48,48 +56,66 @@ struct ShareCard: View {
             LinearGradient(
                 colors: [Color(red: 0.08, green: 0.10, blue: 0.15),
                          Color(red: 0.03, green: 0.04, blue: 0.07)],
-                startPoint: .top, endPoint: .bottom)
+                startPoint: .topLeading, endPoint: .bottomTrailing)
 
             // A faint dot grid for texture — reads as "developer tool" without
             // competing with the content.
-            DotGrid(spacing: 34, dotSize: 2)
+            DotGrid(spacing: 36, dotSize: 2)
                 .foregroundStyle(.white.opacity(0.03))
 
-            // A wash of the brand colour behind the ring — the card is
+            // A wash of the brand colour behind the score ring — the card is
             // brand-first; the score's own colour lives in the ring itself.
             RadialGradient(
-                colors: [Color.brand.opacity(0.20), .clear],
-                center: .init(x: 0.5, y: 0.42), startRadius: 30, endRadius: 560)
+                colors: [Color.brand.opacity(0.22), .clear],
+                center: .init(x: 0.24, y: 0.52), startRadius: 20, endRadius: 560)
         }
     }
 
     // MARK: - Header
 
     private var header: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(Color.brand.opacity(0.18))
-                    .frame(width: 58, height: 58)
-                Image(systemName: "stethoscope")
-                    .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(Color.brand)
-            }
-            VStack(alignment: .leading, spacing: 1) {
+        HStack(spacing: 18) {
+            logo
+            VStack(alignment: .leading, spacing: 2) {
                 Text("DoctorDock")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .font(.system(size: 42, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                 Text("Docker health report")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(.white.opacity(0.5))
             }
             Spacer()
             if showPlatform, !platform.isEmpty {
                 Text(platform)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.4))
-                    .padding(.horizontal, 14).padding(.vertical, 8)
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.42))
+                    .padding(.horizontal, 16).padding(.vertical, 9)
                     .background(.white.opacity(0.05), in: Capsule())
+                    .overlay(Capsule().strokeBorder(.white.opacity(0.06)))
+            }
+        }
+    }
+
+    /// The mascot logo, on a soft brand-tinted disc. Falls back to a glyph in
+    /// contexts where the bundle has no copy of the image (a bare `swift run`).
+    private var logo: some View {
+        ZStack {
+            Circle()
+                .fill(Color.brand.opacity(0.16))
+                .frame(width: 96, height: 96)
+            Circle()
+                .strokeBorder(Color.brand.opacity(0.30), lineWidth: 1.5)
+                .frame(width: 96, height: 96)
+            if let mascot = BrandAsset.mascot {
+                mascot
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 82, height: 82)
+                    .shadow(color: .black.opacity(0.35), radius: 6, y: 2)
+            } else {
+                Image(systemName: "stethoscope")
+                    .font(.system(size: 44, weight: .semibold))
+                    .foregroundStyle(Color.brand)
             }
         }
     }
@@ -109,73 +135,84 @@ struct ShareCard: View {
                     style: StrokeStyle(lineWidth: 22, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .shadow(color: accent.opacity(0.55), radius: 26)
-            VStack(spacing: -4) {
+            VStack(spacing: -6) {
                 Text("\(score)")
-                    .font(.system(size: 168, weight: .bold, design: .rounded))
+                    .font(.system(size: 152, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .monospacedDigit()
                 Text(Format.grade(score).uppercased())
                     .font(.system(size: 22, weight: .heavy, design: .rounded))
                     .tracking(5)
                     .foregroundStyle(accent)
-                    .padding(.top, 8)
+                    .padding(.top, 10)
+                Text("out of 100")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.35))
+                    .padding(.top, 2)
             }
         }
-        .frame(width: 380, height: 380)
+        .frame(width: 360, height: 360)
     }
 
     // MARK: - Metrics
 
     private var metrics: some View {
-        HStack(spacing: 14) {
-            metric("\(summary.containers.total)", "containers",
-                   sub: "\(summary.containers.running) running")
-            metric("\(summary.images.total)", "images",
-                   sub: Format.bytes(summary.images.totalSize))
-            metric("\(summary.volumes.total)", "volumes",
-                   sub: "\(summary.volumes.unused) unused")
-            metric("\(summary.networks.custom)", "networks",
-                   sub: "\(summary.networks.unused) unused")
+        Grid(horizontalSpacing: 18, verticalSpacing: 18) {
+            GridRow {
+                metric("\(summary.containers.total)", "containers",
+                       sub: "\(summary.containers.running) running")
+                metric("\(summary.images.total)", "images",
+                       sub: Format.bytes(summary.images.totalSize))
+            }
+            GridRow {
+                metric("\(summary.volumes.total)", "volumes",
+                       sub: "\(summary.volumes.unused) unused")
+                metric("\(summary.networks.custom)", "networks",
+                       sub: "\(summary.networks.unused) unused")
+            }
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func metric(_ value: String, _ label: String, sub: String) -> some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 6) {
             Text(value)
-                .font(.system(size: 50, weight: .bold, design: .rounded))
+                .font(.system(size: 58, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .monospacedDigit()
             Text(label)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: 19, weight: .semibold))
                 .foregroundStyle(.white.opacity(0.72))
             Text(sub)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(.white.opacity(0.42))
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 22)
-        .background(.white.opacity(0.035), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .padding(.vertical, 30)
+        .background(.white.opacity(0.035), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
             .strokeBorder(.white.opacity(0.05)))
     }
 
     // MARK: - Severity
 
     private var severityRow: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
             ForEach(Severity.allCases.reversed(), id: \.self) { severity in
                 let n = summary.findings.bySeverity.count(severity)
-                HStack(spacing: 8) {
-                    Circle().fill(severity.color).frame(width: 11, height: 11)
+                HStack(spacing: 9) {
+                    Circle().fill(severity.color).frame(width: 12, height: 12)
                     Text("\(n)")
-                        .font(.system(size: 21, weight: .bold, design: .rounded))
+                        .font(.system(size: 23, weight: .bold, design: .rounded))
                         .monospacedDigit().foregroundStyle(.white)
                     Text(severity.rawValue.lowercased())
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(.white.opacity(0.5))
                 }
-                .padding(.horizontal, 18).padding(.vertical, 12)
+                .padding(.horizontal, 22).padding(.vertical, 14)
+                .frame(maxWidth: .infinity)
                 .background(.white.opacity(n > 0 ? 0.05 : 0.02), in: Capsule())
+                .overlay(Capsule().strokeBorder(.white.opacity(n > 0 ? 0.05 : 0)))
                 .opacity(n > 0 ? 1 : 0.4)
             }
         }
@@ -184,20 +221,20 @@ struct ShareCard: View {
     // MARK: - Footer
 
     private var footer: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 9) {
             ForEach(["No AI", "Runs offline", "No data collected"], id: \.self) { badge in
-                HStack(spacing: 6) {
-                    Image(systemName: icon(badge)).font(.system(size: 13))
-                    Text(badge).font(.system(size: 15, weight: .semibold))
+                HStack(spacing: 7) {
+                    Image(systemName: icon(badge)).font(.system(size: 14))
+                    Text(badge).font(.system(size: 16, weight: .semibold))
                 }
-                .foregroundStyle(.white.opacity(0.55))
-                .padding(.horizontal, 14).padding(.vertical, 8)
+                .foregroundStyle(.white.opacity(0.58))
+                .padding(.horizontal, 16).padding(.vertical, 9)
                 .background(.white.opacity(0.04), in: Capsule())
             }
             Spacer()
-            Text("github.com/iamcanturk/DoctorDock")
-                .font(.system(size: 15, weight: .medium, design: .monospaced))
-                .foregroundStyle(.white.opacity(0.35))
+            Text("doctordock.iamcanturk.dev")
+                .font(.system(size: 17, weight: .semibold, design: .monospaced))
+                .foregroundStyle(Color.brand.opacity(0.85))
         }
     }
 
@@ -208,6 +245,21 @@ struct ShareCard: View {
         default: return "lock.shield"
         }
     }
+}
+
+/// The mascot logo, loaded from the app bundle once. Nil in contexts where the
+/// bundle has no copy (for example a bare `swift run`); callers fall back to a
+/// glyph so the card still renders.
+enum BrandAsset {
+    static let mascot: Image? = {
+        #if canImport(AppKit)
+        if let url = Bundle.main.url(forResource: "mascot", withExtension: "png"),
+           let image = NSImage(contentsOf: url) {
+            return Image(nsImage: image)
+        }
+        #endif
+        return nil
+    }()
 }
 
 /// A faint dot grid used behind the share card.

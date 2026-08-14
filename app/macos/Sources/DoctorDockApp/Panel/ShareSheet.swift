@@ -55,12 +55,15 @@ struct ShareSheet: View {
 
     private var preview: some View {
         // The live card scaled to fit, so the preview is exactly the export.
-        card
+        // The frame matches the card's 16:9 aspect so it is not letterboxed.
+        let width: CGFloat = 496
+        let height = width * ShareCard.size.height / ShareCard.size.width
+        return card
             .frame(width: ShareCard.size.width, height: ShareCard.size.height)
-            .scaleEffect(496 / ShareCard.size.width)
-            .frame(width: 496, height: 496)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.08)))
+            .scaleEffect(width / ShareCard.size.width)
+            .frame(width: width, height: height)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.white.opacity(0.08)))
             .padding(20)
     }
 
