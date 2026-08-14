@@ -339,6 +339,49 @@
     </ul>
   </section>
 
+  <section class="page" data-title="Hesap Hazırlığı" data-icon="👤">
+    <span class="eyebrow">Senin hesapların</span>
+    <h1>Hesap hazırlığı — yapılacaklar</h1>
+    <p class="lede">Üç hesabının şu anki durumuna göre, paylaşımlardan önce her birinde tam olarak ne yapman gerektiği. Bio ve mail metinlerini sağ üstteki <em>Kopyala</em> ile al.</p>
+
+    <div class="callout"><strong>Öncelik sırası:</strong> Bugün <strong>Reddit yorumlarına başla</strong> (karma en yavaş birikendir) + PH bio/linklerini 2 dakikada doldur. <strong>VPN'i kapatıp</strong> HN hesabını aç. Karma ~50'ye yaklaşınca takvimdeki paylaşımlara geç.</div>
+
+    <h2>🟠 Reddit — u/iamcanturk</h2>
+    <div class="callout"><strong>Durumun:</strong> 6 yıllık hesap, Verified Email ✓, r/place trophy'leri var — "gerçek insan" görünüyorsun, yaş kapılarını geçersin. Ama <strong>karma 1, 2 katkı</strong>: bu haliyle çoğu subreddit postunu otomatik gizler. En kritik iş karma toplamak.</div>
+    <h3>Yapılacaklar</h3>
+    <ol class="steps">
+      <li><strong>Karma topla (en önemli, en yavaş).</strong> r/docker, r/selfhosted, r/golang, r/webdev'de birkaç güne yayılmış <strong>gerçek</strong> yorumlar yaz — soru cevapla, deneyim paylaş. Hedef ~50+ comment karma; bazı sub'lar 10–50 arası eşik koyar.</li>
+      <li>Profil → <strong>Social Links</strong> ekle: GitHub, X (@iamcanturk), site (iamcanturk.dev).</li>
+      <li>Bio'yu güncelle (aşağıdaki metni kopyala).</li>
+      <li>Avatar ekle (opsiyonel — "gerçek insan" sinyalini güçlendirir).</li>
+    </ol>
+    <div id="reddit-bio"></div>
+    <div class="callout warn"><strong>Karma nasıl toplanır (spam'a düşmeden):</strong> Gerçekten yardımcı ol — birinin Docker sorusuna net cevap, bir tartışmaya deneyimini kat. Kısa "nice/+1" yorumları işe yaramaz, hatta zararlı. Günde 3–5 kaliteli yorum, birkaç gün. Bu aşamada DoctorDock'u <strong>paylaşma</strong>.</div>
+
+    <h2>🔴 Hacker News — "Sorry." hatası</h2>
+    <div class="callout warn"><strong>Durumun:</strong> Giriş/oluşturmada "Sorry." alıyorsun. Bu yanlış şifre değil (o "Bad login." olurdu) — HN'nin <strong>belirli ağlardan (çoğunlukla VPN / bazı ülke IP'leri) hesap açmayı engellemesi</strong>.</div>
+    <h3>Sırayla dene</h3>
+    <ol class="steps">
+      <li><strong>VPN'i kapat.</strong> En garantisi: telefon <strong>mobil verisi / hotspot</strong> üzerinden dene.</li>
+      <li>Gizli sekme veya farklı bir tarayıcı.</li>
+      <li>Hâlâ olmuyorsa <strong>hn@ycombinator.com</strong>'a kısa bir mail at (aşağıda hazır).</li>
+      <li>Hesap açılınca: <strong>Settings → e-posta ekle</strong> (HN e-postayı zorunlu tutmaz ama şifre kurtarma için şart).</li>
+      <li>2–3 konuya samimi yorum yaz, hesabı ısıt. Show HN Salı'ya planlı — vaktin var.</li>
+    </ol>
+    <div id="hn-mail"></div>
+
+    <h2>🟢 Product Hunt — Can Türk (#2706400)</h2>
+    <div class="callout good"><strong>Durumun:</strong> Yerleşik hesap — 33 takipçi, Tastemaker badge. Launch için <strong>ideal</strong>, yaş/spam sorunu yok. Tek eksik: profil tamamlanmamış.</div>
+    <h3>Yapılacaklar</h3>
+    <ol class="steps">
+      <li><strong>Bio ekle</strong> (aşağıdaki metni kopyala).</li>
+      <li><strong>Links:</strong> Twitter'ın yanına <strong>Website</strong> (<code>https://doctordock.iamcanturk.dev</code>) + varsa GitHub ekle.</li>
+      <li>Launch gününe kadar birkaç ürünü upvote/yorumla — organik aktivite iyi görünür.</li>
+    </ol>
+    <div id="ph-bio"></div>
+    <div class="callout"><strong>Launch günü (25 Ağu):</strong> Galeri = sağlık kartı + app ekranları + demo GIF + promo video · tagline + açıklama + ilk yorum (Product Hunt sayfasında hazır) · 00:01 PT / 10:01 TR · oy isteme.</div>
+  </section>
+
   <section class="page" data-title="X (Twitter)" data-icon="5">
     <span class="eyebrow">Kanal</span>
     <h1>X / Twitter <span class="pill tag-x">ana kıvılcım</span></h1>
@@ -619,6 +662,11 @@ makeSnippet("ph-desc","Açıklama",
 "DoctorDock scans your local Docker environment for security problems, misconfigurations, and reclaimable disk in about half a second — then gives you a health score out of 100 you can share. It's fully offline with no AI, no telemetry, and no account: deterministic Go you can read, safe to point at production. Not a CVE scanner (that's Trivy/Grype) — it covers the configuration layer they skip. Free and open source, MIT, with a native macOS menubar app.");
 
 makeSnippet("hashtags","Yeniden kullanılabilir set","#Docker #DevOps #DevSecOps #OpenSource #ContainerSecurity #SelfHosted #CLI #Golang #InfoSec");
+
+makeSnippet("reddit-bio","Reddit bio (kopyala)","Developer building small, honest tools. Currently working on DoctorDock — an offline, AI-free Docker diagnostics CLI. Also an amateur photographer.");
+makeSnippet("hn-mail","hn@ycombinator.com'a mail",
+"Hi,\n\nI've been reading HN for years and would like to create an account to post a Show HN, but I keep getting a \"Sorry.\" page when I try to sign up. Could you help me create an account? My preferred username is iamcanturk.\n\nThank you,\nCan Türk");
+makeSnippet("ph-bio","Product Hunt bio (kopyala)","Developer building small, honest tools. Currently: DoctorDock — offline, AI-free Docker diagnostics with a health score you can share. iamcanturk.dev");
 
 function serializeChildren(el){
   const ser = new XMLSerializer();
