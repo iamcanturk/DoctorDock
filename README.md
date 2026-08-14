@@ -7,6 +7,7 @@
 Find the security problems, misconfigurations and wasted disk in your Docker
 environment — in under a second, entirely offline.
 
+[![Website](https://img.shields.io/badge/website-doctordock.iamcanturk.dev-2496ED?logo=docker&logoColor=white)](https://doctordock.iamcanturk.dev)
 [![Go Reference](https://pkg.go.dev/badge/github.com/iamcanturk/DoctorDock.svg)](https://pkg.go.dev/github.com/iamcanturk/DoctorDock)
 [![Go Report Card](https://goreportcard.com/badge/github.com/iamcanturk/DoctorDock)](https://goreportcard.com/report/github.com/iamcanturk/DoctorDock)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -114,9 +115,9 @@ The image runs as a non-root user, so it needs the socket's group. On Docker
 Desktop the socket is owned by root, so use `--group-add 0`. DoctorDock detects
 this case and prints the right command if you get it wrong.
 
-Prebuilt binaries for macOS, Linux and Windows (amd64 and arm64) are attached to
-every [release](https://github.com/iamcanturk/DoctorDock/releases). Everything
-is one static binary with no runtime dependencies.
+Prebuilt binaries for macOS and Linux (amd64 and arm64) are attached to every
+[release](https://github.com/iamcanturk/DoctorDock/releases). Everything is one
+static binary with no runtime dependencies.
 
 Both `doctordock` and the short alias `ddock` are installed.
 
@@ -242,6 +243,10 @@ run the command twice for it to converge.
 A native SwiftUI menubar app lives in [`app/macos`](app/macos). It shows the
 health score in the menubar, colour-coded, and opens a full panel with
 findings, resource tables and cleanup.
+
+It can also export a **shareable health card** — a 16:9 image of your Docker
+health score and resource counts, carrying *only* aggregate numbers: never a
+container name, image tag, port or path, so it is safe to post publicly.
 
 ```bash
 make app-install     # builds and installs into ~/Applications
