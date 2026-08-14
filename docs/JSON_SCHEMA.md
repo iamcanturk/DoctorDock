@@ -187,15 +187,21 @@ entry with the IPv4 spelling, so a port is never double-counted.
   "repo_tags": ["mysql:8.0"],          // empty for a dangling image
   "repo_digests": ["mysql@sha256:..."],
   "size": 601234567,                    // bytes
-  "shared_size": 8839168,               // bytes shared with other images, or -1
+  "shared_size": -1,                     // not collected by a scan (see below); -1
   "created": "2026-03-23T13:56:51Z",
-  "architecture": "arm64", "os": "linux", "layers": 7,
+  "architecture": "", "os": "", "layers": 0,  // not collected by a scan; see the note below
   "dangling": false,
   "in_use": true,                       // referenced by any container, running or not
   "used_by": ["cms-mysql"],
   "labels": {}
 }
 ```
+
+A scan does not inspect each image, so `shared_size`, `architecture`, `os` and
+`layers` are not populated (`-1`, empty, empty, `0`). Computing shared size
+makes the daemon walk the whole layer graph, and the per-image inspect is one
+round-trip per image — both are real load for data no rule reads. A future
+release may collect them on demand for the resource views.
 
 `in_use` is resolved from the container list rather than taken from the daemon,
 which does not compute it by default. Both the image ID a container was started

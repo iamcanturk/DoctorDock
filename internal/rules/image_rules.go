@@ -103,7 +103,11 @@ func (r OversizedImage) Check(_ context.Context, t Target) []model.Finding {
 		f.Recommendation = imageSizeAdvice(img)
 		f.Details = map[string]string{
 			"size_bytes": fmt.Sprintf("%d", img.Size),
-			"layers":     fmt.Sprintf("%d", img.Layers),
+		}
+		// Layer count is only known when the image was inspected, which the
+		// scan no longer does by default; omit the key rather than report 0.
+		if img.Layers > 0 {
+			f.Details["layers"] = fmt.Sprintf("%d", img.Layers)
 		}
 		out = append(out, f)
 	}

@@ -15,16 +15,24 @@ import (
 //
 // Intermediate build layers are excluded (All: false), matching what
 // `docker images` shows — they are not actionable for a user.
+//
+// SharedSize is deliberately NOT requested. Computing it makes the daemon walk
+// the whole layer graph, which on a machine with dozens of images takes several
+// seconds of VM CPU — the single largest cost in a scan, and the reason it felt
+// like it was straining the machine. Nothing reads SharedSize, so asking for it
+// was pure waste. Size (per-image total) needs no graph walk and is kept.
 func (c *engineClient) ListImages(ctx context.Context) ([]model.Image, error) {
-	summaries, err := c.api.ImageList(ctx, image.ListOptions{SharedSize: true})
+	summaries, err := c.api.ImageList(ctx, image.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("list images: %w", err)
 	}
 
+	// buildImage is pure now — no per-image inspect — so there is nothing to
+	// parallelise. Everything comes from the list response.
 	out := make([]model.Image, len(summaries))
-	forEach(len(summaries), func(i int) {
-		out[i] = c.buildImage(ctx, summaries[i])
-	})
+	for i := range summaries {
+		out[i] = buildImage(summaries[i])
+	}
 
 	sort.Slice(out, func(i, j int) bool {
 		a, b := out[i].DisplayName(), out[j].DisplayName()
@@ -36,15 +44,25 @@ func (c *engineClient) ListImages(ctx context.Context) ([]model.Image, error) {
 	return out, nil
 }
 
-func (c *engineClient) buildImage(ctx context.Context, s image.Summary) model.Image {
+// buildImage normalizes an image from the list response alone.
+//
+// It used to inspect every image to fill in Architecture, OS and layer count.
+// That was one API round-trip per image — half a second of daemon work on a
+// machine with a few dozen images, repeated on every background refresh — for
+// three fields nothing displays and no rule reads. Dropping it makes a scan
+// several times faster and takes real load off the daemon. If a future rule
+// needs the architecture (an amd64 image on an arm64 host, say), it can inspect
+// only the images it cares about rather than all of them up front.
+func buildImage(s image.Summary) model.Image {
 	m := model.Image{
 		ID:          s.ID,
 		RepoTags:    cleanRefs(s.RepoTags),
 		RepoDigests: cleanRefs(s.RepoDigests),
 		Size:        s.Size,
-		SharedSize:  s.SharedSize,
-		Created:     time.Unix(s.Created, 0).UTC(),
-		Labels:      s.Labels,
+		// -1 means "not computed": see ListImages on why shared size is skipped.
+		SharedSize: -1,
+		Created:    time.Unix(s.Created, 0).UTC(),
+		Labels:     s.Labels,
 	}
 	// Dangling matches Docker's own definition — no references of any kind,
 	// neither tags nor digests — because DD014 tells the user to run
@@ -55,14 +73,6 @@ func (c *engineClient) buildImage(ctx context.Context, s image.Summary) model.Im
 	// An image that kept a digest reference but lost its tag is still reported,
 	// by DD015 as an unused image, so nothing falls through the gap.
 	m.Dangling = len(m.RepoTags) == 0 && len(m.RepoDigests) == 0
-
-	// Architecture, OS and layer count are only available from an inspect.
-	// A failure here costs three optional fields, not the scan.
-	if insp, err := c.api.ImageInspect(ctx, s.ID); err == nil {
-		m.Architecture = insp.Architecture
-		m.OS = insp.Os
-		m.Layers = len(insp.RootFS.Layers)
-	}
 
 	return m
 }

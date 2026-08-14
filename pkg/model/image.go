@@ -16,14 +16,22 @@ type Image struct {
 	// Size is the image size in bytes as reported by the daemon.
 	Size int64 `json:"size"`
 	// SharedSize is the number of bytes shared with other images, or -1 when
-	// the daemon did not compute it.
+	// the daemon did not compute it. A scan does not request it, because
+	// computing it makes the daemon walk the whole layer graph — the largest
+	// single cost in a scan — for a value no rule reads. So it is -1 in
+	// practice.
 	SharedSize int64 `json:"shared_size,omitempty"`
 
 	Created time.Time `json:"created"`
 
+	// Architecture, OS and Layers come from an image inspect, which a scan no
+	// longer performs — one round-trip per image is real daemon load for
+	// fields nothing displays and no rule reads. They are therefore empty
+	// unless a caller populated them deliberately. See
+	// internal/docker/images.go.
 	Architecture string `json:"architecture,omitempty"`
 	OS           string `json:"os,omitempty"`
-	// Layers is the number of filesystem layers, or 0 when unknown.
+	// Layers is the number of filesystem layers, or 0 when not collected.
 	Layers int `json:"layers,omitempty"`
 
 	// Dangling means the image has no repository tag: usually a leftover from
