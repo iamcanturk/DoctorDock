@@ -9,41 +9,45 @@
 <meta property="og:title" content="DoctorDock — a doctor for your Docker">
 <meta property="og:description" content="Find the security problems, misconfigurations and wasted disk in your Docker environment — in under a second, entirely offline.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://doctordock.iamcanturk.dev">
 <meta property="og:image" content="https://doctordock.iamcanturk.dev/assets/health-card.png">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:creator" content="@iamcanturk">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0574a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 2v2'/%3E%3Cpath d='M5 2v2'/%3E%3Cpath d='M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1'/%3E%3Cpath d='M8 15a6 6 0 0 0 12 0v-3'/%3E%3Ccircle cx='20' cy='10' r='2'/%3E%3C/svg%3E">
+<link rel="icon" href="assets/mascot.png">
+<link rel="apple-touch-icon" href="assets/mascot.png">
 
 <style>
-  @layer reset, base, layout, components, utilities;
+  @layer reset, base, layout, components, motion, utilities;
 
   @layer reset {
     *, *::before, *::after { box-sizing: border-box; margin: 0; }
-    :where(html) { -webkit-text-size-adjust: 100%; }
-    :where(img, svg) { display: block; max-width: 100%; }
+    :where(html) { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+    :where(img, svg, canvas) { display: block; max-width: 100%; }
     :where(a) { color: inherit; text-decoration: none; }
     :where(button) { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
   }
 
   @layer base {
     :root {
-      --bg: #07080c;
-      --bg-2: #0c0e15;
-      --surface: #12141c;
-      --surface-2: #171a24;
-      --border: #23273400;
-      --line: color-mix(in srgb, #8b93ad 14%, transparent);
-      --text: #eef1f7;
-      --muted: #9aa2b8;
-      --faint: #6b7488;
-      --accent: #e0574a;
-      --accent-2: #f0865f;
-      --green: #35b26a;
-      --yellow: #d99a1a;
-      --red: #d43a2f;
-      --blue: #4b86d6;
+      /* Docker blue */
+      --accent: #2496ed;
+      --accent-2: #55b0f4;
+      --accent-deep: #0b6bc4;
+      --bg: #060a12;
+      --bg-2: #0a1220;
+      --surface: #0f1826;
+      --surface-2: #142235;
+      --line: color-mix(in srgb, #6ba7e8 16%, transparent);
+      --text: #eaf1fb;
+      --muted: #93a6c4;
+      --faint: #62748f;
+      --green: #35c07a;
+      --yellow: #e0a72a;
+      --red: #e0574a;
+      --blue: #4b9ae0;
       --radius: 16px;
-      --maxw: 1080px;
+      --maxw: 1100px;
       color-scheme: dark;
     }
 
@@ -51,228 +55,226 @@
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-      /* Dot grid, matching the share card. */
-      background-image:
-        radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
-        radial-gradient(color-mix(in srgb, #ffffff 4%, transparent) 1px, transparent 1px);
-      background-size: 100% 900px, 32px 32px;
-      background-repeat: no-repeat, repeat;
+      line-height: 1.55; -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      background-image: radial-gradient(color-mix(in srgb, #7fb6f0 5%, transparent) 1px, transparent 1px);
+      background-size: 30px 30px;
     }
 
-    h1, h2, h3 { line-height: 1.1; letter-spacing: -0.02em; text-wrap: balance; }
+    h1, h2, h3 { line-height: 1.08; letter-spacing: -0.02em; text-wrap: balance; }
     p { text-wrap: pretty; }
     code, kbd, .mono { font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace; }
   }
 
   @layer layout {
     .wrap { max-width: var(--maxw); margin-inline: auto; padding-inline: clamp(20px, 5vw, 40px); }
-    section { padding-block: clamp(56px, 9vw, 104px); }
-    .stack { display: grid; gap: 1rem; }
+    section { padding-block: clamp(60px, 9vw, 112px); position: relative; }
+    #bg-canvas { position: fixed; inset: 0; z-index: -1; opacity: .55; }
   }
 
   @layer components {
-    /* Nav */
     .nav {
-      position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(12px);
-      background: color-mix(in srgb, var(--bg) 72%, transparent);
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(14px);
+      background: color-mix(in srgb, var(--bg) 68%, transparent);
       border-bottom: 1px solid var(--line);
     }
-    .nav .wrap { display: flex; align-items: center; gap: 1rem; padding-block: 14px; }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; }
-    .brand svg { width: 26px; height: 26px; color: var(--accent); }
+    .nav .wrap { display: flex; align-items: center; gap: 1rem; padding-block: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.12rem; }
+    .brand img { width: 32px; height: 32px; }
     .nav .spacer { flex: 1; }
-    .nav a.ghost { color: var(--muted); font-size: .95rem; font-weight: 500; }
-    .nav a.ghost:hover { color: var(--text); }
+    .nav-links { display: flex; align-items: center; gap: 22px; }
+    .nav-links a { color: var(--muted); font-size: .95rem; font-weight: 500; transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links .icon-link svg { width: 19px; height: 19px; display: block; }
+    @media (max-width: 620px) { .nav-links a.hide-sm { display: none; } }
 
-    /* Buttons */
     .btn {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 11px 18px; border-radius: 11px; font-weight: 600; font-size: .95rem;
-      min-height: 44px;
-      transition: transform .12s ease, background .2s ease, border-color .2s ease;
+      padding: 11px 18px; border-radius: 11px; font-weight: 600; font-size: .95rem; min-height: 44px;
+      transition: transform .12s ease, filter .2s ease, border-color .2s ease, background .2s ease;
     }
     .btn:active { transform: translateY(1px); }
-    .btn.primary { background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: #fff; }
-    .btn.primary:hover { filter: brightness(1.06); }
+    .btn.primary { background: linear-gradient(180deg, var(--accent-2), var(--accent)); color: #fff;
+      box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--accent) 70%, transparent); }
+    .btn.primary:hover { filter: brightness(1.08); }
     .btn.secondary { background: var(--surface-2); border: 1px solid var(--line); color: var(--text); }
-    .btn.secondary:hover { border-color: color-mix(in srgb, var(--text) 25%, transparent); }
+    .btn.secondary:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
 
     /* Hero */
-    .hero { padding-block: clamp(48px, 8vw, 88px) clamp(40px, 6vw, 72px); }
-    .hero-grid { display: grid; gap: clamp(32px, 5vw, 56px); align-items: center;
-      grid-template-columns: 1fr; }
-    @media (min-width: 900px) { .hero-grid { grid-template-columns: 1.05fr .95fr; } }
+    .hero { padding-block: clamp(44px, 7vw, 84px) clamp(40px, 6vw, 76px); }
+    .hero::before {
+      content: ""; position: absolute; inset-block-start: -120px; inset-inline: 0; height: 620px; z-index: -1;
+      background: radial-gradient(closest-side at 62% 40%, color-mix(in srgb, var(--accent) 28%, transparent), transparent);
+      filter: blur(20px); animation: pulse 7s ease-in-out infinite;
+    }
+    .hero-grid { display: grid; gap: clamp(28px, 5vw, 56px); align-items: center; grid-template-columns: 1fr; }
+    @media (min-width: 920px) { .hero-grid { grid-template-columns: 1.05fr .95fr; } }
 
     .eyebrow {
       display: inline-flex; align-items: center; gap: 8px;
       font-size: .82rem; font-weight: 600; color: var(--muted);
-      padding: 6px 12px; border-radius: 999px;
-      background: var(--surface); border: 1px solid var(--line);
+      padding: 6px 13px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line);
     }
-    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-    h1.title { font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 800; margin-block: 18px 14px; }
-    h1.title .accent { color: var(--accent); }
-    .lede { font-size: clamp(1.05rem, 2.2vw, 1.25rem); color: var(--muted); max-width: 34ch; }
-
+    .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+      box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 70%, transparent); animation: ping 2.4s ease-out infinite; }
+    h1.title { font-size: clamp(2.5rem, 6.4vw, 4.2rem); font-weight: 800; margin-block: 18px 14px; }
+    h1.title .accent { color: transparent; background: linear-gradient(120deg, var(--accent-2), var(--accent)); -webkit-background-clip: text; background-clip: text; }
+    .lede { font-size: clamp(1.05rem, 2.1vw, 1.28rem); color: var(--muted); max-width: 36ch; }
     .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-block-start: 26px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 24px; }
+    .badge { display: inline-flex; align-items: center; gap: 7px; font-size: .84rem; font-weight: 600;
+      color: var(--muted); padding: 7px 13px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+    .badge svg { width: 15px; height: 15px; opacity: .85; color: var(--accent); }
 
-    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-block-start: 26px; }
-    .badge {
-      display: inline-flex; align-items: center; gap: 7px;
-      font-size: .84rem; font-weight: 600; color: var(--muted);
-      padding: 7px 13px; border-radius: 999px;
-      background: var(--surface); border: 1px solid var(--line);
+    /* Hero visual: mascot floating over the card */
+    .hero-visual { position: relative; display: grid; place-items: center; }
+    .hero-visual .card-img {
+      width: 100%; border-radius: 20px; border: 1px solid var(--line);
+      box-shadow: 0 40px 90px -34px color-mix(in srgb, var(--accent) 55%, black);
     }
-    .badge svg { width: 15px; height: 15px; opacity: .8; }
-
-    .hero-card { position: relative; }
-    .hero-card img {
-      width: 100%; border-radius: 20px;
-      border: 1px solid var(--line);
-      box-shadow: 0 30px 80px -30px color-mix(in srgb, var(--accent) 40%, black);
+    .hero-visual .mascot {
+      position: absolute; inset-block-start: -46px; inset-inline-end: -22px;
+      width: clamp(120px, 22vw, 190px); filter: drop-shadow(0 14px 24px rgba(0,0,0,.4));
+      animation: float 5.5s ease-in-out infinite;
     }
-    .hero-card figcaption {
-      text-align: center; color: var(--faint); font-size: .82rem; margin-block-start: 12px;
-    }
+    .hero-visual figcaption { position: absolute; inset-block-end: -30px; inset-inline: 0;
+      text-align: center; color: var(--faint); font-size: .82rem; }
 
     /* Code block */
-    .code {
-      display: flex; align-items: center; gap: 12px;
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: 12px; padding: 12px 12px 12px 16px;
-      font-family: ui-monospace, monospace; font-size: .95rem;
-      max-width: 100%; overflow: auto;
-    }
+    .code { display: flex; align-items: center; gap: 12px; background: var(--surface);
+      border: 1px solid var(--line); border-radius: 12px; padding: 12px 12px 12px 16px;
+      font-family: ui-monospace, monospace; font-size: .95rem; max-width: 100%; }
     .code .prompt { color: var(--accent); user-select: none; }
     .code code { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .code .copy {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: .8rem; font-weight: 600; color: var(--muted);
-      padding: 7px 11px; border-radius: 8px; background: var(--surface-2);
-      border: 1px solid var(--line); flex-shrink: 0;
-    }
+    .code .copy { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600;
+      color: var(--muted); padding: 7px 11px; border-radius: 8px; background: var(--surface-2);
+      border: 1px solid var(--line); flex-shrink: 0; transition: color .2s; }
     .code .copy:hover { color: var(--text); }
     .code .copy.done { color: var(--green); }
 
     /* Feature cards */
     .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-    .card {
-      background: linear-gradient(180deg, var(--surface), var(--bg-2));
-      border: 1px solid var(--line); border-radius: var(--radius);
-      padding: 24px;
-    }
-    .card .ico {
-      width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
-      background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent);
-      margin-block-end: 14px;
-    }
+    .card { background: linear-gradient(180deg, var(--surface), var(--bg-2)); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 24px; transition: transform .25s ease, border-color .25s ease; }
+    .card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+    .card .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+      background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); margin-block-end: 14px; }
     .card .ico svg { width: 22px; height: 22px; }
     .card h3 { font-size: 1.1rem; margin-block-end: 6px; }
     .card p { color: var(--muted); font-size: .95rem; }
+    .card code { color: var(--accent-2); font-size: .88em; }
 
-    /* Section heads */
-    .head { text-align: center; max-width: 44ch; margin-inline: auto; margin-block-end: clamp(32px, 5vw, 52px); }
-    .head .kicker { color: var(--accent); font-weight: 700; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; }
-    .head h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 800; margin-block: 10px 12px; }
+    .head { text-align: center; max-width: 46ch; margin-inline: auto; margin-block-end: clamp(32px, 5vw, 52px); }
+    .head .kicker { color: var(--accent); font-weight: 700; font-size: .82rem; letter-spacing: .1em; text-transform: uppercase; }
+    .head h2 { font-size: clamp(1.75rem, 4vw, 2.6rem); font-weight: 800; margin-block: 10px 12px; }
     .head p { color: var(--muted); font-size: 1.05rem; }
 
-    /* Install grid */
-    .install { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-    .install .method {
-      background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px;
-    }
-    .install .method h3 {
-      display: flex; align-items: center; gap: 8px; font-size: 1rem; margin-block-end: 12px;
-    }
-    .install .method h3 .tag { font-size: .72rem; font-weight: 600; color: var(--faint);
-      padding: 2px 8px; border-radius: 999px; background: var(--surface-2); }
+    .install { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .method { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+    .method h3 { display: flex; align-items: center; gap: 8px; font-size: 1rem; margin-block-end: 12px; }
+    .method h3 .tag { font-size: .72rem; font-weight: 600; color: var(--accent-2);
+      padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, transparent); }
 
-    /* Rules table */
-    .rules { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
-    .rule { display: flex; align-items: baseline; gap: 10px; padding: 11px 14px;
-      background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+    .rules { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+    .rule { display: flex; align-items: baseline; gap: 10px; padding: 11px 14px; background: var(--surface);
+      border: 1px solid var(--line); border-radius: 10px; transition: border-color .2s; }
+    .rule:hover { border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
     .rule .sev { font-size: .68rem; font-weight: 800; letter-spacing: .04em; padding: 2px 7px; border-radius: 5px; flex-shrink: 0; }
     .sev.crit { color: var(--red); background: color-mix(in srgb, var(--red) 16%, transparent); }
-    .sev.high { color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+    .sev.high { color: #e88a4a; background: color-mix(in srgb, #e88a4a 16%, transparent); }
     .sev.med { color: var(--yellow); background: color-mix(in srgb, var(--yellow) 16%, transparent); }
     .sev.low { color: var(--blue); background: color-mix(in srgb, var(--blue) 16%, transparent); }
-    .sev.info { color: var(--faint); background: color-mix(in srgb, var(--faint) 20%, transparent); }
+    .sev.info { color: var(--faint); background: color-mix(in srgb, var(--faint) 22%, transparent); }
     .rule .rid { font-family: ui-monospace, monospace; font-size: .78rem; color: var(--faint); flex-shrink: 0; }
     .rule .rn { font-size: .92rem; }
 
-    /* Footer */
+    .callout { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--bg-2));
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: var(--radius);
+      padding: clamp(28px, 5vw, 48px); text-align: center; position: relative; overflow: hidden; }
+    .callout::before { content:""; position:absolute; inset:0; z-index:0;
+      background: radial-gradient(closest-side at 50% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent); }
+    .callout > * { position: relative; z-index: 1; }
+    .callout h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800; }
+    .callout p { color: var(--muted); max-width: 54ch; margin: 12px auto 0; font-size: 1.06rem; }
+
     footer { border-top: 1px solid var(--line); padding-block: 40px; color: var(--muted); }
-    footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
-    footer a { color: var(--muted); }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; }
+    footer .brand { font-size: 1rem; }
+    .foot-links { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+    footer a { color: var(--muted); transition: color .2s; }
     footer a:hover { color: var(--text); }
-    .foot-links { display: flex; gap: 20px; flex-wrap: wrap; }
-
-    /* privacy callout */
-    .callout {
-      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--bg-2));
-      border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
-      border-radius: var(--radius); padding: clamp(28px, 5vw, 44px); text-align: center;
-    }
-    .callout h2 { font-size: clamp(1.5rem, 3.5vw, 2.1rem); font-weight: 800; }
-    .callout p { color: var(--muted); max-width: 52ch; margin: 12px auto 0; font-size: 1.05rem; }
+    .foot-social { display: flex; gap: 14px; }
+    .foot-social svg { width: 18px; height: 18px; }
   }
 
-  @layer utilities {
-    .center { text-align: center; }
+  @layer motion {
+    @keyframes float { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-14px) rotate(2deg); } }
+    @keyframes pulse { 0%,100% { opacity: .7; } 50% { opacity: 1; } }
+    @keyframes ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 60%, transparent); }
+      70%,100% { box-shadow: 0 0 0 8px transparent; } }
+
+    /* Scroll reveal */
+    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+    .reveal.d1 { transition-delay: .06s; } .reveal.d2 { transition-delay: .12s; }
+    .reveal.d3 { transition-delay: .18s; } .reveal.d4 { transition-delay: .24s; }
+
     @media (prefers-reduced-motion: reduce) {
-      * { animation: none !important; transition: none !important; }
+      *, *::before, *::after { animation: none !important; transition-duration: .001s !important; }
+      .reveal { opacity: 1; transform: none; }
+      #bg-canvas { display: none; }
     }
   }
+
+  @layer utilities { .center { text-align: center; } }
 </style>
 </head>
 <body>
 
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <symbol id="i-stethoscope" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M11 2v2M5 2v2M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/>
-    </symbol>
-    <symbol id="i-cpu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M20 9h2M20 14h2M2 9h2M2 14h2"/></symbol>
-    <symbol id="i-wifi-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8M2 8.8a15 15 0 0 1 4.2-2.5M20.6 12.9a10 10 0 0 0-2.4-1.8M22 8.8a15 15 0 0 0-6-3.4M2 2l20 20"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></symbol>
-    <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
-    <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 10 8 10 8a13 13 0 0 1-1.7 2.7M6.6 6.6A13 13 0 0 0 2 12s3 8 10 8a9 9 0 0 0 5.4-1.6M2 2l20 20"/></symbol>
-    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></symbol>
-    <symbol id="i-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 0 0 8.8 21.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.2-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></symbol>
-  </defs>
-</svg>
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-cpu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M20 9h2M20 14h2M2 9h2M2 14h2"/></symbol>
+  <symbol id="i-wifi-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8M2 8.8a15 15 0 0 1 4.2-2.5M20.6 12.9a10 10 0 0 0-2.4-1.8M22 8.8a15 15 0 0 0-6-3.4M2 2l20 20"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A9.1 9.1 0 0 1 12 4c7 0 10 8 10 8a13 13 0 0 1-1.7 2.7M6.6 6.6A13 13 0 0 0 2 12s3 8 10 8a9 9 0 0 0 5.4-1.6M2 2l20 20"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></symbol>
+  <symbol id="i-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 0 0 8.8 21.5c.5.1.7-.2.7-.5v-1.7c-2.8.6-3.4-1.3-3.4-1.3-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1.1 2.9.8.1-.7.3-1.1.6-1.4-2.2-.2-4.6-1.1-4.6-4.9 0-1.1.4-2 1-2.7-.1-.3-.4-1.3.1-2.7 0 0 .8-.3 2.7 1a9.4 9.4 0 0 1 5 0c1.9-1.3 2.7-1 2.7-1 .5 1.4.2 2.4.1 2.7.6.7 1 1.6 1 2.7 0 3.8-2.3 4.7-4.6 4.9.4.3.7.9.7 1.9v2.8c0 .3.2.6.7.5A10 10 0 0 0 12 2z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></symbol>
+</defs></svg>
 
 <nav class="nav">
   <div class="wrap">
-    <a class="brand" href="#top"><svg><use href="#i-stethoscope"/></svg> DoctorDock</a>
+    <a class="brand" href="#top"><img src="assets/mascot.png" alt=""> DoctorDock</a>
     <span class="spacer"></span>
-    <a class="ghost" href="#install">Install</a>
-    <a class="ghost" href="#checks">Checks</a>
-    <a class="ghost" href="https://github.com/iamcanturk/DoctorDock">GitHub</a>
+    <div class="nav-links">
+      <a class="hide-sm" href="#why">Why</a>
+      <a class="hide-sm" href="#install">Install</a>
+      <a class="hide-sm" href="#checks">Checks</a>
+      <a class="icon-link" href="https://github.com/iamcanturk/DoctorDock" aria-label="GitHub"><svg><use href="#i-github"/></svg></a>
+      <a class="icon-link" href="https://x.com/iamcanturk" aria-label="X"><svg><use href="#i-x"/></svg></a>
+    </div>
   </div>
 </nav>
 
 <header class="hero wrap" id="top">
   <div class="hero-grid">
-    <div>
+    <div class="reveal in">
       <span class="eyebrow"><span class="dot"></span> No AI · No network · No telemetry</span>
       <h1 class="title">A doctor for<br>your <span class="accent">Docker</span>.</h1>
       <p class="lede">Find the security problems, misconfigurations and wasted disk in your Docker environment — in under a second, entirely offline.</p>
 
-      <div class="code" data-copy="brew install iamcanturk/tap/doctordock">
-        <span class="prompt">$</span>
-        <code>brew install iamcanturk/tap/doctordock</code>
+      <div class="code" data-copy="brew install iamcanturk/tap/doctordock" style="margin-block-start:26px">
+        <span class="prompt">$</span><code>brew install iamcanturk/tap/doctordock</code>
         <button class="copy" type="button" aria-label="Copy install command">Copy</button>
       </div>
 
       <div class="cta-row">
         <a class="btn primary" href="#install">Get started</a>
-        <a class="btn secondary" href="https://github.com/iamcanturk/DoctorDock">
-          <svg width="18" height="18"><use href="#i-github"/></svg> View source
-        </a>
+        <a class="btn secondary" href="https://github.com/iamcanturk/DoctorDock"><svg width="18" height="18"><use href="#i-github"/></svg> View source</a>
       </div>
 
       <div class="badges">
@@ -282,118 +284,61 @@
       </div>
     </div>
 
-    <figure class="hero-card">
-      <img src="assets/health-card.png" width="1080" height="1080"
-           alt="A DoctorDock health card: score 42 out of 100, 26 containers, 32 images, 29 volumes, 9 networks, and a severity breakdown.">
-      <figcaption>The shareable card the app generates — numbers only, never a name or a port.</figcaption>
+    <figure class="hero-visual reveal in d2">
+      <img class="mascot" src="assets/mascot.png" alt="The DoctorDock robot mascot, tidying Docker containers.">
+      <img class="card-img" src="assets/health-card.png" width="1080" height="1080"
+           alt="A DoctorDock health card: score 42 of 100, with container, image, volume and network counts and a severity breakdown.">
+      <figcaption>The shareable card the app makes — numbers only, never a name or a port.</figcaption>
     </figure>
   </div>
 </header>
 
 <section id="why">
   <div class="wrap">
-    <div class="head">
+    <div class="head reveal">
       <span class="kicker">Why DoctorDock</span>
       <h2>Docker makes it easy to run things, and hard to notice what you are running.</h2>
       <p>Six months in, the average machine has a container mounting the Docker socket, three databases open to the network, a dozen containers running as root, and gigabytes of images nothing uses. DoctorDock finds all of it.</p>
     </div>
     <div class="cards">
-      <article class="card">
-        <div class="ico"><svg><use href="#i-cpu"/></svg></div>
-        <h3>No AI, ever</h3>
-        <p>Every finding is deterministic code you can read. The same environment always produces the same output. No hallucinations, no surprises.</p>
-      </article>
-      <article class="card">
-        <div class="ico"><svg><use href="#i-wifi-off"/></svg></div>
-        <h3>Fully offline</h3>
-        <p>Zero network calls. No CVE feed to sync, no account, no update check. It opens exactly one local socket — Docker's — and nothing else.</p>
-      </article>
-      <article class="card">
-        <div class="ico"><svg><use href="#i-eye-off"/></svg></div>
-        <h3>Secrets stay put</h3>
-        <p>Container environment variables are read as key names only. A value can't reach a report, so scans are safe to run against production.</p>
-      </article>
-      <article class="card">
-        <div class="ico"><svg><use href="#i-bolt"/></svg></div>
-        <h3>Instant</h3>
-        <p>A full scan of dozens of containers and images takes under a second. Fast enough to run dozens of times a day, or in CI on every push.</p>
-      </article>
-      <article class="card">
-        <div class="ico"><svg><use href="#i-trash"/></svg></div>
-        <h3>Guarded cleanup</h3>
-        <p>Reclaim gigabytes of unused images and networks. Nothing is removed without <code>--apply</code>, and a volume is never touched without asking twice.</p>
-      </article>
-      <article class="card">
-        <div class="ico"><svg><use href="#i-shield"/></svg></div>
-        <h3>CI-ready</h3>
-        <p>JSON output and opt-in exit codes. Gate a deploy with <code>doctordock scan --fail-on high</code> — 0 clean, 2 for HIGH, 3 for CRITICAL.</p>
-      </article>
+      <article class="card reveal"><div class="ico"><svg><use href="#i-cpu"/></svg></div><h3>No AI, ever</h3><p>Every finding is deterministic code you can read. The same environment always produces the same output. No hallucinations, no surprises.</p></article>
+      <article class="card reveal d1"><div class="ico"><svg><use href="#i-wifi-off"/></svg></div><h3>Fully offline</h3><p>Zero network calls. No CVE feed to sync, no account, no update check. It opens exactly one local socket — Docker's — and nothing else.</p></article>
+      <article class="card reveal d2"><div class="ico"><svg><use href="#i-eye-off"/></svg></div><h3>Secrets stay put</h3><p>Container environment variables are read as key names only. A value can't reach a report, so scans are safe to run against production.</p></article>
+      <article class="card reveal"><div class="ico"><svg><use href="#i-bolt"/></svg></div><h3>Instant</h3><p>A full scan of dozens of containers and images takes under a second. Fast enough to run dozens of times a day, or in CI on every push.</p></article>
+      <article class="card reveal d1"><div class="ico"><svg><use href="#i-trash"/></svg></div><h3>Guarded cleanup</h3><p>Reclaim gigabytes of unused images and networks. Nothing is removed without <code>--apply</code>, and a volume is never touched without asking twice.</p></article>
+      <article class="card reveal d2"><div class="ico"><svg><use href="#i-shield"/></svg></div><h3>CI-ready</h3><p>JSON output and opt-in exit codes. Gate a deploy with <code>doctordock scan --fail-on high</code> — 0 clean, 2 for HIGH, 3 for CRITICAL.</p></article>
     </div>
   </div>
 </section>
 
 <section id="install">
   <div class="wrap">
-    <div class="head">
+    <div class="head reveal">
       <span class="kicker">Install</span>
-      <h2>One static binary. No runtime.</h2>
-      <p>Pick your platform. Both <code>doctordock</code> and the short alias <code>ddock</code> are installed.</p>
+      <h2>One command on a Mac.</h2>
+      <p>Both <code>doctordock</code> and the short alias <code>ddock</code> are installed. Free, no account needed.</p>
     </div>
     <div class="install">
-      <div class="method">
-        <h3>macOS <span class="tag">Homebrew</span></h3>
-        <div class="code" data-copy="brew install iamcanturk/tap/doctordock">
-          <span class="prompt">$</span><code>brew install iamcanturk/tap/doctordock</code>
-          <button class="copy" type="button">Copy</button>
-        </div>
-      </div>
-      <div class="method">
-        <h3>Windows <span class="tag">Scoop</span></h3>
-        <div class="code" data-copy="scoop install doctordock">
-          <span class="prompt">$</span><code>scoop install doctordock</code>
-          <button class="copy" type="button">Copy</button>
-        </div>
-      </div>
-      <div class="method">
-        <h3>Any platform <span class="tag">npx</span></h3>
-        <div class="code" data-copy="npx doctordock">
-          <span class="prompt">$</span><code>npx doctordock</code>
-          <button class="copy" type="button">Copy</button>
-        </div>
-      </div>
-      <div class="method">
-        <h3>Container <span class="tag">ghcr.io</span></h3>
-        <div class="code" data-copy="docker run --rm --group-add $(stat -c '%g' /var/run/docker.sock) -v /var/run/docker.sock:/var/run/docker.sock:ro ghcr.io/iamcanturk/doctordock">
-          <span class="prompt">$</span><code>docker run … ghcr.io/iamcanturk/doctordock</code>
-          <button class="copy" type="button">Copy</button>
-        </div>
-      </div>
-      <div class="method">
-        <h3>Go <span class="tag">go install</span></h3>
-        <div class="code" data-copy="go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest">
-          <span class="prompt">$</span><code>go install github.com/…/doctordock@latest</code>
-          <button class="copy" type="button">Copy</button>
-        </div>
-      </div>
-      <div class="method">
-        <h3>Then just run it</h3>
-        <div class="code" data-copy="doctordock">
-          <span class="prompt">$</span><code>doctordock</code>
-          <button class="copy" type="button">Copy</button>
-        </div>
-      </div>
+      <div class="method reveal"><h3>macOS <span class="tag">Homebrew</span></h3>
+        <div class="code" data-copy="brew install iamcanturk/tap/doctordock"><span class="prompt">$</span><code>brew install iamcanturk/tap/doctordock</code><button class="copy" type="button">Copy</button></div></div>
+      <div class="method reveal d1"><h3>Any platform <span class="tag">Go</span></h3>
+        <div class="code" data-copy="go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest"><span class="prompt">$</span><code>go install github.com/…/doctordock@latest</code><button class="copy" type="button">Copy</button></div></div>
+      <div class="method reveal"><h3>CI / container <span class="tag">ghcr.io</span></h3>
+        <div class="code" data-copy="docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro ghcr.io/iamcanturk/doctordock"><span class="prompt">$</span><code>docker run … ghcr.io/iamcanturk/doctordock</code><button class="copy" type="button">Copy</button></div></div>
+      <div class="method reveal d1"><h3>Then just run it</h3>
+        <div class="code" data-copy="doctordock"><span class="prompt">$</span><code>doctordock</code><button class="copy" type="button">Copy</button></div></div>
     </div>
   </div>
 </section>
 
 <section id="checks">
   <div class="wrap">
-    <div class="head">
+    <div class="head reveal">
       <span class="kicker">18 checks</span>
       <h2>What it looks for</h2>
       <p>Security, configuration, resources and cleanup. Every rule explains itself — what it means, why it matters, and how to fix it.</p>
     </div>
-    <div class="rules">
+    <div class="rules reveal">
       <div class="rule"><span class="sev crit">CRIT</span><span class="rid">DD005</span><span class="rn">Docker socket mounted into a container</span></div>
       <div class="rule"><span class="sev crit">CRIT</span><span class="rid">DD002</span><span class="rn">Privileged container</span></div>
       <div class="rule"><span class="sev high">HIGH</span><span class="rid">DD001</span><span class="rn">Container runs as root</span></div>
@@ -416,13 +361,11 @@
 
 <section>
   <div class="wrap">
-    <div class="callout">
+    <div class="callout reveal">
       <h2>It never leaves your machine.</h2>
       <p>No AI to send your data to, no server to phone home, no account to create. DoctorDock reads the local Docker socket and writes to your terminal. That's the whole system. The shareable card carries only aggregate numbers — never a container name, an image tag, a port or a path.</p>
-      <div class="cta-row" style="justify-content:center; margin-top: 24px;">
-        <a class="btn primary" href="https://github.com/iamcanturk/DoctorDock">
-          <svg width="18" height="18"><use href="#i-github"/></svg> Star on GitHub
-        </a>
+      <div class="cta-row" style="justify-content:center; margin-top:24px">
+        <a class="btn primary" href="https://github.com/iamcanturk/DoctorDock"><svg width="18" height="18"><use href="#i-github"/></svg> Star on GitHub</a>
       </div>
     </div>
   </div>
@@ -430,34 +373,84 @@
 
 <footer>
   <div class="wrap">
-    <div class="brand"><svg width="22" height="22"><use href="#i-stethoscope"/></svg> DoctorDock</div>
+    <a class="brand" href="#top"><img src="assets/mascot.png" alt="" width="24" height="24"> DoctorDock</a>
     <nav class="foot-links">
-      <a href="https://github.com/iamcanturk/DoctorDock">GitHub</a>
       <a href="https://github.com/iamcanturk/DoctorDock/blob/main/docs/RULES.md">Rules</a>
       <a href="https://github.com/iamcanturk/DoctorDock/blob/main/docs/JSON_SCHEMA.md">JSON schema</a>
       <a href="https://github.com/iamcanturk/DoctorDock/releases">Releases</a>
+      <span class="foot-social">
+        <a href="https://github.com/iamcanturk/DoctorDock" aria-label="GitHub"><svg><use href="#i-github"/></svg></a>
+        <a href="https://x.com/iamcanturk" aria-label="X"><svg><use href="#i-x"/></svg></a>
+        <a href="https://iamcanturk.dev" aria-label="Website"><svg><use href="#i-globe"/></svg></a>
+      </span>
     </nav>
-    <span style="color:var(--faint); font-size:.9rem;">MIT licensed</span>
+    <span style="color:var(--faint); font-size:.9rem">Built by <a href="https://iamcanturk.dev">Can Türk</a> · MIT</span>
   </div>
 </footer>
 
 <script>
-  // Copy buttons. Progressive enhancement: without JS the command is still
-  // selectable text, so nothing is lost.
+  // Copy buttons — progressive enhancement.
   for (const block of document.querySelectorAll(".code[data-copy]")) {
     const button = block.querySelector(".copy");
-    if (!button) continue;
-    button.addEventListener("click", async () => {
+    button?.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(block.dataset.copy);
-        button.textContent = "Copied";
-        button.classList.add("done");
+        button.textContent = "Copied"; button.classList.add("done");
         setTimeout(() => { button.textContent = "Copy"; button.classList.remove("done"); }, 1500);
-      } catch {
-        button.textContent = "Press ⌘C";
-      }
+      } catch { button.textContent = "Press ⌘C"; }
     });
   }
+
+  // Scroll reveal.
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal:not(.in)").forEach((el) => io.observe(el));
+
+  // Lightweight floating-cube background. Canvas 2D, no dependencies, paused
+  // when the tab is hidden and skipped entirely under reduced-motion.
+  (() => {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const canvas = document.getElementById("bg-canvas");
+    if (reduce || !canvas) return;
+    const ctx = canvas.getContext("2d");
+    let w, h, dpr, cubes, raf;
+
+    const rand = (a, b) => a + Math.random() * (b - a);
+    function resize() {
+      dpr = Math.min(2, devicePixelRatio || 1);
+      w = canvas.width = innerWidth * dpr;
+      h = canvas.height = innerHeight * dpr;
+      canvas.style.width = innerWidth + "px";
+      canvas.style.height = innerHeight + "px";
+      const count = Math.min(46, Math.floor(innerWidth / 34));
+      cubes = Array.from({ length: count }, () => ({
+        x: rand(0, w), y: rand(0, h), s: rand(8, 22) * dpr,
+        vy: rand(0.12, 0.5) * dpr, vx: rand(-0.15, 0.15) * dpr,
+        rot: rand(0, Math.PI), vr: rand(-0.004, 0.004), a: rand(0.05, 0.18),
+      }));
+    }
+    function cube(c) {
+      ctx.save(); ctx.translate(c.x, c.y); ctx.rotate(c.rot);
+      ctx.strokeStyle = `rgba(90,170,240,${c.a})`; ctx.lineWidth = 1.4 * dpr;
+      ctx.strokeRect(-c.s / 2, -c.s / 2, c.s, c.s);
+      ctx.restore();
+    }
+    function tick() {
+      ctx.clearRect(0, 0, w, h);
+      for (const c of cubes) {
+        c.y += c.vy; c.x += c.vx; c.rot += c.vr;
+        if (c.y - c.s > h) { c.y = -c.s; c.x = rand(0, w); }
+        cube(c);
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    addEventListener("resize", resize, { passive: true });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) cancelAnimationFrame(raf); else tick();
+    });
+    resize(); tick();
+  })();
 </script>
 </body>
 </html>

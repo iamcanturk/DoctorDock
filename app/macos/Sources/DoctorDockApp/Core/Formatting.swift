@@ -124,6 +124,14 @@ extension ResourceKind {
     }
 }
 
+extension Color {
+    /// The Docker-blue brand accent, used for chrome — buttons, selection, the
+    /// logo. Score and severity keep their semantic colours (green good, red
+    /// bad); the brand colour is for identity, not meaning.
+    static let brand = Color(red: 0.14, green: 0.588, blue: 0.929)      // #2496ED
+    static let brandDeep = Color(red: 0.043, green: 0.42, blue: 0.77)
+}
+
 /// Maps a score onto the colour used everywhere it appears, including the
 /// menubar icon.
 func scoreColor(_ score: Int) -> Color {

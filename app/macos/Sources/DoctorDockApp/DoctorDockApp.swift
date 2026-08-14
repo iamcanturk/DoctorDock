@@ -10,6 +10,7 @@ struct DoctorDockApp: App {
         MenuBarExtra {
             PopoverView()
                 .environmentObject(store)
+                .tint(.brand)
         } label: {
             MenuBarLabel(store: store)
         }
@@ -20,6 +21,7 @@ struct DoctorDockApp: App {
         Window("DoctorDock", id: PanelWindow.id) {
             PanelView()
                 .environmentObject(store)
+                .tint(.brand)
                 .frame(minWidth: 820, minHeight: 520)
         }
         .defaultSize(width: 980, height: 660)

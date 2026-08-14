@@ -55,10 +55,10 @@ struct ShareCard: View {
             DotGrid(spacing: 34, dotSize: 2)
                 .foregroundStyle(.white.opacity(0.03))
 
-            // A wash of the score colour behind the ring, so the card's mood
-            // matches its number before anything is read.
+            // A wash of the brand colour behind the ring — the card is
+            // brand-first; the score's own colour lives in the ring itself.
             RadialGradient(
-                colors: [accent.opacity(0.22), .clear],
+                colors: [Color.brand.opacity(0.20), .clear],
                 center: .init(x: 0.5, y: 0.42), startRadius: 30, endRadius: 560)
         }
     }
@@ -69,11 +69,11 @@ struct ShareCard: View {
         HStack(spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 13, style: .continuous)
-                    .fill(accent.opacity(0.16))
+                    .fill(Color.brand.opacity(0.18))
                     .frame(width: 58, height: 58)
                 Image(systemName: "stethoscope")
                     .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(accent)
+                    .foregroundStyle(Color.brand)
             }
             VStack(alignment: .leading, spacing: 1) {
                 Text("DoctorDock")
