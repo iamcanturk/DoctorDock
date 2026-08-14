@@ -64,6 +64,11 @@ environment — in under a second, entirely offline.
       host needs access.
 ```
 
+<p align="center">
+  <img src="web/assets/demo.gif" alt="DoctorDock in the terminal: the command list, then doctordock explain DD005 showing the attack scenario, copy-paste fixes and references" width="900">
+  <br><sub><b>Every rule explains itself</b> — what it looks for, why it matters, and how to fix it.</sub>
+</p>
+
 ## Why DoctorDock?
 
 Docker makes it easy to run things and hard to notice what you are running.
