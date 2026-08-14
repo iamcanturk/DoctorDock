@@ -20,6 +20,8 @@ environment — in under a second, entirely offline.
 
 <img src="web/assets/health-card.png" alt="DoctorDock health report card — a Docker health score with container, image, volume and network counts and per-severity findings" width="880">
 
+**[Get started](#install)** — scan your Docker and share your own card.
+
 </div>
 
 ---
@@ -99,13 +101,10 @@ Design constraints, in order:
 ## Install
 
 ```bash
-# macOS
+# macOS (Homebrew)
 brew install iamcanturk/tap/doctordock
 
-# Any platform
-go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest
-
-# Go
+# Any platform, with Go
 go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest
 ```
 
