@@ -1,0 +1,12 @@
+{
+  // Cloudflare deploy config for the DoctorDock landing page only.
+  //
+  // The site is static — no Worker code, just the files in web/. Cloudflare's
+  // "assets-only Worker" serves them directly. `npx wrangler deploy` (the
+  // command Cloudflare's Git build runs) reads this and uploads web/.
+  "name": "doctordock",
+  "compatibility_date": "2025-06-01",
+  "assets": {
+    "directory": "./web"
+  }
+}
