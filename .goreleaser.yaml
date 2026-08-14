@@ -14,13 +14,14 @@ builds:
       # A static binary is the whole point: users must not need a Go toolchain,
       # a libc version or anything else installed.
       - CGO_ENABLED=0
-    goos: [linux, darwin, windows]
+    # Distribution is Mac-first (Homebrew), plus Linux so the container image
+    # and `go install` work for CI. Windows is not a target — no Scoop, no
+    # windows archives.
+    goos: [darwin, linux]
     goarch: [amd64, arm64]
     flags:
       - -trimpath
     ldflags:
-      # -s -w strip symbols and DWARF data. The Docker SDK makes the binary
-      # large enough that this is worth several megabytes.
       - -s -w
       - -X main.version={{ .Version }}
       - -X main.commit={{ .ShortCommit }}
@@ -28,9 +29,6 @@ builds:
 archives:
   - id: default
     formats: [tar.gz]
-    format_overrides:
-      - goos: windows
-        formats: [zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     files:
       - README.md
@@ -66,8 +64,8 @@ changelog:
       - "^ci:"
       - Merge pull request
 
-# Homebrew casks are macOS-only. Linux users install with `go install`, the
-# container image, npx, or the release archive — see docs/DISTRIBUTION.md.
+# The primary Mac install path. A cask (not a formula) because DoctorDock ships
+# a prebuilt binary rather than building from source.
 homebrew_casks:
   - name: doctordock
     binaries:
@@ -75,8 +73,10 @@ homebrew_casks:
     repository:
       owner: iamcanturk
       name: homebrew-tap
+      # The default GITHUB_TOKEN cannot push to another repo, so a PAT is used.
+      # Running goreleaser locally, gh's token has the scope already.
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: https://github.com/iamcanturk/DoctorDock
+    homepage: https://doctordock.iamcanturk.dev
     description: Local-first Docker diagnostics — security, configuration and cleanup findings
     license: MIT
     # `ddock` is the short alias: the same binary reachable under a second name.
@@ -85,22 +85,13 @@ homebrew_casks:
     hooks:
       post:
         # The binaries are not notarized, so Gatekeeper would quarantine them
-        # and macOS would refuse to run the tool with an unhelpful dialog.
+        # and macOS would refuse to run the tool. Homebrew clears that on install.
         install: |
           if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/doctordock"]
           end
 
-scoops:
-  - name: doctordock
-    repository:
-      owner: iamcanturk
-      name: scoop-bucket
-      token: "{{ .Env.SCOOP_BUCKET_TOKEN }}"
-    homepage: https://github.com/iamcanturk/DoctorDock
-    description: Local-first Docker diagnostics — security, configuration and cleanup findings
-    license: MIT
-
+# The container image, for running DoctorDock in CI without installing anything.
 dockers_v2:
   - id: doctordock
     dockerfile: Dockerfile.release
@@ -128,12 +119,10 @@ release:
 
     ```bash
     brew install iamcanturk/tap/doctordock     # macOS
-    scoop install doctordock                    # Windows
-    npx doctordock                              # no install, any platform
     go install github.com/iamcanturk/DoctorDock/cmd/doctordock@{{ .Tag }}
     ```
 
-    Or run it without installing anything:
+    Or run it in CI without installing anything:
 
     ```bash
     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro \

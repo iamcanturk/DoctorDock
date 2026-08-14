@@ -95,12 +95,8 @@ Design constraints, in order:
 # macOS
 brew install iamcanturk/tap/doctordock
 
-# Windows
-scoop bucket add iamcanturk https://github.com/iamcanturk/scoop-bucket
-scoop install doctordock
-
-# Any platform, no install
-npx doctordock
+# Any platform
+go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest
 
 # Go
 go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest
