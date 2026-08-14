@@ -15,7 +15,7 @@ Bir akşam, uzun bir günün sonunda `docker ps` yazdım ve çıktıya bir süre
 
 O an rahatsız edici bir şeyi kabul ettim: Docker'ı her gün kullanıyordum ama içinde tam olarak ne döndüğünü bilmiyordum.
 
-Docker bu konuda tuhaf bir araç. Bir şeyi çalıştırmayı olağanüstü kolaylaştırıyor, ne çalıştırdığını fark etmeyi ise aynı ölçüde zorlaştırıyor. Altı ay süren bir projenin sonunda ortalama bir geliştiricinin makinesinde şunlar birikiyor: Docker soketini içine bağlamış bir konteyner, `0.0.0.0` üzerinde herkese açık birkaç veritabanı, root olarak çalışan bir düzine servis ve kimsenin referans vermediği gigabaytlarca imaj. Hiçbiri o an alarm çalmıyor — ta ki bir şey bozulana ya da biri seni taramaya karar verene kadar.
+Docker bu konuda tuhaf bir araç. Bir şeyi çalıştırmayı olağanüstü kolaylaştırıyor, ne çalıştırdığını fark etmeyi ise aynı ölçüde zorlaştırıyor. Altı ay süren bir projenin sonunda ortalama bir geliştiricinin makinesinde şunlar birikiyor: Docker soketini içine bağlamış bir konteyner, `0.0.0.0` üzerinde herkese açık birkaç veritabanı, root olarak çalışan bir düzine servis ve kimsenin referans vermediği gigabaytlarca imaj. Hiçbiri o an alarm çalmıyor; ta ki bir şey bozulana ya da biri seni taramaya karar verene kadar.
 
 ![DoctorDock sağlık kartı: 100 üzerinden Docker sağlık puanı ve kaynak sayıları](https://doctordock.iamcanturk.dev/assets/health-card.png)
 
@@ -27,7 +27,7 @@ Aradığım şey tek bir soruya cevap veren bir araçtı: **Bu Docker ortamında
 
 ## DoctorDock
 
-DoctorDock, yerel Docker ortamını tarayan küçük bir komut satırı aracı — yanında bir de native macOS menubar uygulaması. Güvenlik problemlerini, hatalı yapılandırmaları ve geri kazanılabilir diski bulup önüne koyuyor, sonuna da 100 üzerinden bir sağlık puanı bırakıyor. Go ile yazdım; tek binary, hesap yok, MIT lisansı.
+DoctorDock, yerel Docker ortamını tarayan küçük bir komut satırı aracı; yanında bir de native macOS menubar uygulaması var. Güvenlik problemlerini, hatalı yapılandırmaları ve geri kazanılabilir diski bulup önüne koyuyor, sonuna da 100 üzerinden bir sağlık puanı bırakıyor. Go ile yazdım; tek binary, hesap yok, MIT lisansı.
 
 Hız konusunda somut olayım: bende yaklaşık 26 konteyner, 29 imaj, 29 volume ve 12 ağdan oluşan bir ortamın tam taraması ~550 ms sürüyor. `docker ps` yazıp çıktısını okuma sürenden kısa.
 
@@ -37,7 +37,7 @@ Bu aracı yazarken üç şeye baştan karar verdim. Üçü de "eksik özellik" g
 
 ### Yapay zeka yok
 
-Bunu bir "AI destekli güvenlik ürünü" yapabilirdim. Yapmadım. Her bulgu, okuyabileceğin deterministik Go kodu; aynı ortam her zaman aynı çıktıyı üretiyor. Bir kuralın neyi neden işaretlediğini merak edersen kaynağına bakabilirsin. Bir güvenlik aracının bana "sanırım burada bir sorun olabilir" demesini istemiyorum — ya vardır, ya yoktur.
+Bunu bir "AI destekli güvenlik ürünü" yapabilirdim. Yapmadım. Her bulgu, okuyabileceğin deterministik Go kodu; aynı ortam her zaman aynı çıktıyı üretiyor. Bir kuralın neyi neden işaretlediğini merak edersen kaynağına bakabilirsin. Bir güvenlik aracının bana "sanırım burada bir sorun olabilir" demesini istemiyorum; ya vardır ya yoktur.
 
 ### Çevrimdışı
 
@@ -45,7 +45,7 @@ Sıfır ağ çağrısı. Telemetri yok, hesap yok, güncelleme kontrolü yok. Do
 
 ### Sırlar yerinde kalır
 
-Konteyner ortam değişkenlerini yalnızca **anahtar adı** olarak okuyorum; değerleri bir rapora ulaşabilecek hiçbir biçimde belleğe girmiyor. `DATABASE_PASSWORD` diye bir anahtarın olduğunu görürsün, değerini asla. Bu da aracı production'a karşı çalıştırmayı güvenli kılıyor — ki bunun bir güvenlik aracında pazarlanacak bir özellik değil, varsayılan olması gerekir.
+Konteyner ortam değişkenlerini yalnızca **anahtar adı** olarak okuyorum; değerleri bir rapora ulaşabilecek hiçbir biçimde belleğe girmiyor. `DATABASE_PASSWORD` diye bir anahtarın olduğunu görürsün, değerini asla. Bu da aracı production'a karşı çalıştırmayı güvenli kılıyor. Oysa bir güvenlik aracında bunun pazarlanacak bir özellik değil, varsayılan olması gerekir.
 
 ## Nasıl görünüyor
 
@@ -87,13 +87,13 @@ doctordock cleanup            # kuru çalışma: sadece ne silineceğini göster
 doctordock cleanup --apply    # gerçekten uygular
 ```
 
-Ve `--volumes` dışında hiçbir flag bir volume'u seçemiyor — `--all` bile. Bir imajı yeniden çekebilir, bir ağı yeniden kurabilirsin; ama bir volume'daki veri gittiğinde geri gelmiyor. Bu yüzden volume'lar ancak açıkça ve tek başına istediğinde işin içine giriyor. Kazara hiçbir şey silinmiyor.
+Ve `--volumes` dışında hiçbir flag bir volume'u seçemiyor, `--all` bile. Bir imajı yeniden çekebilir, bir ağı yeniden kurabilirsin; ama bir volume'daki veri gittiğinde geri gelmiyor. Bu yüzden volume'lar ancak açıkça ve tek başına istediğinde işin içine giriyor. Kazara hiçbir şey silinmiyor.
 
 ## Kapanış
 
 DoctorDock büyük bir ürün değil; küçük ve dürüst bir araç. Docker ortamının aylar içinde sessizce biriktirdiği şeyleri saniyenin altında, hiçbir veriyi dışarı sızdırmadan önüne koyuyor. Bir doktor gibi: bakıyor, teşhis koyuyor, ne yapman gerektiğini söylüyor ve kararı sana bırakıyor.
 
-Merak ettiysen bir tarama çalıştır ve makinenin gerçekte kaç aldığını gör. Muhtemelen sandığından düşük çıkacak — ama ilk kez tam olarak ne yapacağını bileceksin.
+Merak ettiysen bir tarama çalıştır ve makinenin gerçekte kaç aldığını gör. Muhtemelen sandığından düşük çıkacak, ama ilk kez tam olarak ne yapacağını bileceksin.
 
 - Kod: [github.com/iamcanturk/DoctorDock](https://github.com/iamcanturk/DoctorDock)
 - İndir ve detaylar: [doctordock.iamcanturk.dev](https://doctordock.iamcanturk.dev)
