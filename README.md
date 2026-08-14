@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="web/assets/mascot.png" alt="DoctorDock mascot" width="140">
+
 # DoctorDock
 
 **A doctor for your Docker.**
@@ -13,6 +15,10 @@ environment — in under a second, entirely offline.
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **No AI · No network calls · No telemetry · No account · Nothing deleted without `--apply`**
+
+<br>
+
+<img src="web/assets/health-card.png" alt="DoctorDock health report card — a Docker health score with container, image, volume and network counts and per-severity findings" width="880">
 
 </div>
 
@@ -247,6 +253,11 @@ findings, resource tables and cleanup.
 It can also export a **shareable health card** — a 16:9 image of your Docker
 health score and resource counts, carrying *only* aggregate numbers: never a
 container name, image tag, port or path, so it is safe to post publicly.
+
+<p align="center">
+  <img src="web/assets/app-overview.png" width="48%" alt="DoctorDock overview: the health score, resource counts, and what to fix first">
+  <img src="web/assets/app-finding.png" width="48%" alt="DoctorDock finding detail: why it matters and copy-paste fixes">
+</p>
 
 ```bash
 make app-install     # builds and installs into ~/Applications
