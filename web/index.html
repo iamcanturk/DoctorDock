@@ -3,19 +3,119 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DoctorDock — a doctor for your Docker</title>
-<meta name="description" content="Local-first Docker diagnostics. Find security problems, misconfigurations and reclaimable disk in your Docker environment. No AI, no network calls, no telemetry.">
+<title>DoctorDock — a doctor for your Docker | Offline Docker security &amp; cleanup</title>
+<meta name="description" content="DoctorDock is a local-first, AI-free CLI and macOS app that scans your Docker environment for security problems, misconfigurations and reclaimable disk — in under a second, entirely offline. No telemetry, no account, open source.">
+<meta name="keywords" content="docker security, docker diagnostics, container security, docker cleanup, devsecops, docker misconfiguration, offline docker scanner, docker cli, homebrew, docker socket">
+<meta name="author" content="Can Türk">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="theme-color" content="#2496ed">
+<link rel="canonical" href="https://doctordock.iamcanturk.dev/">
 
+<!-- Open Graph -->
+<meta property="og:site_name" content="DoctorDock">
 <meta property="og:title" content="DoctorDock — a doctor for your Docker">
-<meta property="og:description" content="Find the security problems, misconfigurations and wasted disk in your Docker environment — in under a second, entirely offline.">
+<meta property="og:description" content="Find the security problems, misconfigurations and wasted disk in your Docker environment — in under a second, entirely offline. No AI, no telemetry.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://doctordock.iamcanturk.dev">
-<meta property="og:image" content="https://doctordock.iamcanturk.dev/assets/health-card.png">
+<meta property="og:url" content="https://doctordock.iamcanturk.dev/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://doctordock.iamcanturk.dev/assets/health-card.png?v=3">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1600">
+<meta property="og:image:height" content="900">
+<meta property="og:image:alt" content="A DoctorDock health report card: a Docker health score out of 100 with container, image, volume and network counts and per-severity findings.">
+
+<!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@iamcanturk">
 <meta name="twitter:creator" content="@iamcanturk">
+<meta name="twitter:title" content="DoctorDock — a doctor for your Docker">
+<meta name="twitter:description" content="Local-first Docker diagnostics: security, misconfig and cleanup findings in under a second, entirely offline. No AI, no telemetry.">
+<meta name="twitter:image" content="https://doctordock.iamcanturk.dev/assets/health-card.png?v=3">
+<meta name="twitter:image:alt" content="A DoctorDock Docker health report card with a health score and resource counts.">
 
 <link rel="icon" href="assets/mascot.png?v=2">
 <link rel="apple-touch-icon" href="assets/mascot.png?v=2">
+
+<!-- Structured data. Describes the software, its author, and the FAQ so that
+     search engines and AI answer engines can cite DoctorDock accurately. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://doctordock.iamcanturk.dev/#software",
+      "name": "DoctorDock",
+      "alternateName": "ddock",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "macOS, Linux",
+      "description": "Local-first, AI-free CLI and macOS menubar app that scans a Docker environment for security problems, misconfigurations and reclaimable disk in under a second, entirely offline.",
+      "url": "https://doctordock.iamcanturk.dev/",
+      "downloadUrl": "https://github.com/iamcanturk/DoctorDock/releases",
+      "installUrl": "https://doctordock.iamcanturk.dev/#install",
+      "codeRepository": "https://github.com/iamcanturk/DoctorDock",
+      "softwareVersion": "0.1",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "image": "https://doctordock.iamcanturk.dev/assets/health-card.png",
+      "screenshot": "https://doctordock.iamcanturk.dev/assets/app-overview.png",
+      "keywords": "docker security, docker diagnostics, container security, docker cleanup, devsecops, offline docker scanner",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@id": "https://iamcanturk.dev/#person" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://iamcanturk.dev/#person",
+      "name": "Can Türk",
+      "url": "https://iamcanturk.dev",
+      "sameAs": ["https://github.com/iamcanturk", "https://x.com/iamcanturk"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://doctordock.iamcanturk.dev/#website",
+      "url": "https://doctordock.iamcanturk.dev/",
+      "name": "DoctorDock",
+      "publisher": { "@id": "https://iamcanturk.dev/#person" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://doctordock.iamcanturk.dev/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is DoctorDock?",
+          "acceptedAnswer": { "@type": "Answer", "text": "DoctorDock is a local-first command-line tool (with a native macOS menubar app) that scans your local Docker environment and reports security problems, misconfigurations, and reclaimable disk. A full scan takes under a second and produces a Docker health score out of 100." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does DoctorDock use AI?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Every finding is deterministic Go code you can read, so the same environment always produces the same output. There is no model in the analysis path and nothing is guessed." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is DoctorDock offline? Does it send my data anywhere?",
+          "acceptedAnswer": { "@type": "Answer", "text": "It is fully offline. There are zero network calls, no telemetry, and no account. DoctorDock opens exactly one local socket — Docker's — and nothing else. It runs air-gapped and in locked-down CI." }
+        },
+        {
+          "@type": "Question",
+          "name": "How is DoctorDock different from Trivy or Grype?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Trivy and Grype scan images for CVEs and need a vulnerability database, and therefore a network. DoctorDock deliberately does not scan for CVEs. It covers the configuration layer those tools do not look at — how your containers are actually run — and stays offline as a result." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it safe to run against production?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Container environment variables are read as key names only; their values never enter memory in a form that could reach a report. And cleanup never deletes anything unless you pass --apply." }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I install DoctorDock?",
+          "acceptedAnswer": { "@type": "Answer", "text": "On macOS: brew install iamcanturk/tap/doctordock. On any platform with Go: go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest. It is free and open source under the MIT license." }
+        }
+      ]
+    }
+  ]
+}
+</script>
 
 <style>
   @layer reset, base, layout, components, motion, utilities;
@@ -208,6 +308,20 @@
     .callout h2 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); font-weight: 800; }
     .callout p { color: var(--muted); max-width: 54ch; margin: 12px auto 0; font-size: 1.06rem; }
 
+    /* FAQ */
+    .faq { display: grid; gap: 12px; max-width: 780px; margin-inline: auto; }
+    .faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      padding-inline: 20px; transition: border-color .2s; }
+    .faq details[open] { border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+    .faq summary { list-style: none; cursor: pointer; font-weight: 600; font-size: 1.02rem;
+      padding-block: 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; color: var(--accent); font-size: 1.5rem; font-weight: 300;
+      line-height: 1; transition: transform .2s ease; }
+    .faq details[open] summary::after { transform: rotate(45deg); }
+    .faq p { color: var(--muted); font-size: .97rem; padding-block: 0 18px; margin: 0; }
+    .faq code { color: var(--accent-2); font-size: .9em; }
+
     footer { border-top: 1px solid var(--line); padding-block: 40px; color: var(--muted); }
     footer .wrap { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between; }
     footer .brand { font-size: 1rem; }
@@ -264,6 +378,7 @@
       <a class="hide-sm" href="#why">Why</a>
       <a class="hide-sm" href="#install">Install</a>
       <a class="hide-sm" href="#checks">Checks</a>
+      <a class="hide-sm" href="#faq">FAQ</a>
       <a class="icon-link" href="https://github.com/iamcanturk/DoctorDock" aria-label="GitHub"><svg><use href="#i-github"/></svg></a>
       <a class="icon-link" href="https://x.com/iamcanturk" aria-label="X"><svg><use href="#i-x"/></svg></a>
     </div>
@@ -377,6 +492,42 @@
       <div class="rule"><span class="sev info">INFO</span><span class="rid">DD015</span><span class="rn">Unused image</span></div>
       <div class="rule"><span class="sev info">INFO</span><span class="rid">DD017</span><span class="rn">Unused volume</span></div>
       <div class="rule"><span class="sev info">INFO</span><span class="rid">DD018</span><span class="rn">Unused network</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="kicker">FAQ</span>
+      <h2>Questions, answered</h2>
+      <p>The things people ask before running a scanner against their Docker.</p>
+    </div>
+    <div class="faq reveal">
+      <details open>
+        <summary>What is DoctorDock?</summary>
+        <p>DoctorDock is a local-first command-line tool, with a native macOS menubar app, that scans your local Docker environment and reports security problems, misconfigurations, and reclaimable disk. A full scan takes under a second and ends with a Docker health score out of 100.</p>
+      </details>
+      <details>
+        <summary>Does DoctorDock use AI?</summary>
+        <p>No. Every finding is deterministic Go code you can read, so the same environment always produces the same output. There is no model in the analysis path and nothing is guessed. If AI ever appears, it will only ever <em>explain</em> the results — never produce them.</p>
+      </details>
+      <details>
+        <summary>Is it offline? Does it send my data anywhere?</summary>
+        <p>It is fully offline. Zero network calls, no telemetry, no account, no update check. DoctorDock opens exactly one local socket — Docker's — and nothing else. It runs air-gapped and inside a locked-down CI runner.</p>
+      </details>
+      <details>
+        <summary>How is it different from Trivy or Grype?</summary>
+        <p>Trivy and Grype scan images for CVEs and need a vulnerability database, and therefore a network. DoctorDock deliberately does not scan for CVEs — that is a solved problem. It covers the configuration layer those tools don't look at (how your containers are actually run) and stays offline as a result.</p>
+      </details>
+      <details>
+        <summary>Is it safe to run against production?</summary>
+        <p>Yes. Container environment variables are read as key <em>names</em> only; their values never enter memory in a form that could reach a report. And <code>cleanup</code> never deletes anything unless you pass <code>--apply</code> — a volume is never touched unless you ask for it by name.</p>
+      </details>
+      <details>
+        <summary>How do I install it, and is it free?</summary>
+        <p>On macOS: <code>brew install iamcanturk/tap/doctordock</code>. On any platform with Go: <code>go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest</code>. It is free and open source under the MIT license — no account needed.</p>
+      </details>
     </div>
   </div>
 </section>

@@ -26,3 +26,6 @@ packaging/npm/bin/doctordock.exe
 
 # Local swarm state (not part of the product)
 /.swarm/
+
+# Cloudflare Wrangler local state (deploy tooling)
+/.wrangler/

@@ -1,0 +1,49 @@
+# DoctorDock
+
+> DoctorDock is a local-first, AI-free command-line tool (with a native macOS menubar app) that scans your local Docker environment and reports security problems, misconfigurations, and reclaimable disk — in under a second, entirely offline. It ends with a Docker health score out of 100. Free and open source under the MIT license.
+
+DoctorDock answers one question: **what is wrong with this Docker environment, right now, and what should I do about it?** It is written in Go and ships as a single static binary. Author: Can Türk (https://iamcanturk.dev).
+
+## Key facts
+
+- **No AI.** Every finding is deterministic Go code you can read; the same environment always produces the same output. Nothing is guessed. If AI is ever added, it will only explain results, never produce them.
+- **Fully offline.** Zero network calls, no telemetry, no account, no update check. It opens exactly one local socket — Docker's. Runs air-gapped and in locked-down CI.
+- **Privacy-preserving.** Container environment variables are read as key names only; values never enter a report. Safe to run against production. The shareable score card contains aggregate numbers only — never a container name, image tag, port, or path.
+- **Guarded cleanup.** `doctordock cleanup` is a dry run unless you pass `--apply`. No flag except `--volumes` can select a Docker volume — not even `--all` — because a volume's data cannot be recreated.
+- **Fast.** A full scan of ~26 containers, ~29 images, ~29 volumes and 12 networks takes about 550 ms.
+- **Not a CVE scanner.** That is a solved problem (Trivy, Grype), which need a vulnerability database and a network. DoctorDock covers the configuration layer those tools do not look at, and stays offline as a result.
+- **Platforms.** macOS and Linux (plus anywhere via `go install` or the container image). Not Windows.
+
+## Install
+
+- macOS (Homebrew): `brew install iamcanturk/tap/doctordock`
+- Any platform (Go): `go install github.com/iamcanturk/DoctorDock/cmd/doctordock@latest`
+- CI / container: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock:ro ghcr.io/iamcanturk/doctordock`
+
+Both `doctordock` and the short alias `ddock` are installed.
+
+## Rules
+
+18 rules across security, configuration, resources and cleanup. Notable ones:
+- DD005 (CRITICAL): Docker socket mounted into a container (equivalent to host root)
+- DD002 (CRITICAL): privileged container
+- DD001 (HIGH): container runs as root
+- DD004 (HIGH): sensitive host path mounted (`/`, `/etc`, `~/.ssh`, `~/.aws`, …)
+- DD006 (MEDIUM): database/admin port published on `0.0.0.0`
+- DD013 (MEDIUM): container stuck in a restart loop
+- DD007 (LOW): no healthcheck
+- DD015 (INFO): unused image
+
+Any rule explains itself: `doctordock explain DD005` prints what it looks for, why it matters, a worked attack scenario, copy-pasteable fixes, when it is fine to ignore, and authoritative references.
+
+## CI
+
+Exit codes are opt-in via `--fail-on`: `doctordock scan --fail-on high`. 0 = clean, 2 = a HIGH finding, 3 = a CRITICAL finding, 10 = the tool itself failed (bad flags, no daemon).
+
+## Links
+
+- Website: https://doctordock.iamcanturk.dev/
+- Source (GitHub): https://github.com/iamcanturk/DoctorDock
+- Releases: https://github.com/iamcanturk/DoctorDock/releases
+- Rule catalogue: https://github.com/iamcanturk/DoctorDock/blob/main/docs/RULES.md
+- Author: https://iamcanturk.dev — X: https://x.com/iamcanturk
