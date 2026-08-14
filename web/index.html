@@ -14,8 +14,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:creator" content="@iamcanturk">
 
-<link rel="icon" href="assets/mascot.png">
-<link rel="apple-touch-icon" href="assets/mascot.png">
+<link rel="icon" href="assets/mascot.png?v=2">
+<link rel="apple-touch-icon" href="assets/mascot.png?v=2">
 
 <style>
   @layer reset, base, layout, components, motion, utilities;
@@ -127,18 +127,26 @@
       color: var(--muted); padding: 7px 13px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
     .badge svg { width: 15px; height: 15px; opacity: .85; color: var(--accent); }
 
-    /* Hero visual: the animated mascot */
-    .hero-visual { position: relative; display: grid; place-items: center; }
-    .hero-video {
-      width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 22px;
-      border: 1px solid var(--line); background: #eef2f7;
-      box-shadow: 0 40px 90px -34px color-mix(in srgb, var(--accent) 60%, black);
-    }
-    /* The showcase card in the closing section */
+    /* Hero visual: the mascot logo, floating */
+    .hero-visual { position: relative; display: grid; place-items: center; min-height: 340px; }
+    .hero-visual .mascot { width: clamp(240px, 42vw, 400px); animation: float 6s ease-in-out infinite;
+      filter: drop-shadow(0 26px 40px color-mix(in srgb, var(--accent) 45%, black)); }
+    .hero-visual::before { content:""; position:absolute; width: 64%; aspect-ratio:1; border-radius:50%;
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 35%, transparent), transparent);
+      filter: blur(30px); animation: pulse 6s ease-in-out infinite; z-index:-1; }
+
+    /* Real app screenshots */
+    .shots { display: grid; gap: clamp(20px, 3vw, 34px); grid-template-columns: 1fr; align-items: start; }
+    @media (min-width: 880px) { .shots { grid-template-columns: 1.25fr .95fr; } }
+    .shots img { width: 100%; border-radius: 14px;
+      box-shadow: 0 34px 80px -34px color-mix(in srgb, var(--accent) 55%, black), 0 2px 0 color-mix(in srgb,#fff 6%,transparent) inset; }
+    .shot-note { color: var(--muted); font-size: .95rem; margin-block-start: 12px; text-align: center; }
+
+    /* The closing showcase: real app + the shareable card */
     .showcase { display: grid; gap: clamp(28px, 5vw, 48px); align-items: center;
       grid-template-columns: 1fr; margin-block-end: clamp(36px, 5vw, 56px); }
     @media (min-width: 860px) { .showcase { grid-template-columns: 1fr 1fr; } }
-    .showcase img { width: 100%; border-radius: 18px; border: 1px solid var(--line);
+    .showcase img { width: 100%; border-radius: 18px;
       box-shadow: 0 30px 70px -30px color-mix(in srgb, var(--accent) 45%, black); }
     .showcase h3 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; margin-block-end: 12px; }
     .showcase p { color: var(--muted); font-size: 1.05rem; }
@@ -250,7 +258,7 @@
 
 <nav class="nav">
   <div class="wrap">
-    <a class="brand" href="#top"><img src="assets/mascot.png" alt=""> DoctorDock</a>
+    <a class="brand" href="#top"><img src="assets/mascot.png?v=2" alt=""> DoctorDock</a>
     <span class="spacer"></span>
     <div class="nav-links">
       <a class="hide-sm" href="#why">Why</a>
@@ -287,13 +295,25 @@
     </div>
 
     <figure class="hero-visual reveal in d2">
-      <video class="hero-video" autoplay muted loop playsinline
-             poster="assets/video-poster.jpg" aria-label="The DoctorDock mascot in motion">
-        <source src="assets/video.mp4" type="video/mp4">
-      </video>
+      <img class="mascot" src="assets/mascot.png?v=2" alt="The DoctorDock robot mascot, tidying Docker containers.">
     </figure>
   </div>
 </header>
+
+<section id="see" style="padding-block: clamp(40px,6vw,72px)">
+  <div class="wrap">
+    <div class="head reveal">
+      <span class="kicker">See it</span>
+      <h2>The whole picture, at a glance.</h2>
+      <p>A menubar app for macOS shows the score, every finding grouped by rule, and how to fix each one — the same engine as the CLI, native.</p>
+    </div>
+    <div class="shots reveal">
+      <div><img src="assets/app-overview.png?v=2" alt="DoctorDock overview: health score 42, resource counts, and what to fix first."></div>
+      <div><img src="assets/app-finding.png?v=2" alt="DoctorDock finding detail: Docker socket exposed, why it matters, and how to fix it with copyable commands."></div>
+    </div>
+    <p class="shot-note">Every finding explains itself — what it looks for, why it matters, and copy-paste fixes.</p>
+  </div>
+</section>
 
 <section id="why">
   <div class="wrap">
@@ -364,12 +384,13 @@
 <section>
   <div class="wrap">
     <div class="showcase reveal">
-      <img src="assets/health-card.png" width="1080" height="1080"
-           alt="A DoctorDock health card: score 42 of 100 with resource counts and a severity breakdown.">
+      <img src="assets/app-popover.png?v=2"
+           alt="DoctorDock menubar popover: the health score, resource counts and top findings.">
       <div>
-        <span class="kicker" style="color:var(--accent)">Show it off</span>
-        <h3>Post your Docker health.</h3>
-        <p>One click turns a scan into a card you can share — the score, resource counts and severity breakdown, and nothing else. No container name, image tag, port or path ever reaches it. Safe to post in public.</p>
+        <span class="kicker" style="color:var(--accent)">Always on</span>
+        <h3>Right in your menubar.</h3>
+        <p>The score sits in the menubar, colour-coded, and rescans on its own. Click it for the findings and a one-click cleanup — the same engine as the CLI, so the two never disagree about a number.</p>
+        <div class="cta-row"><a class="btn secondary" href="#install">Install the app</a></div>
       </div>
     </div>
     <div class="callout reveal">
@@ -384,7 +405,7 @@
 
 <footer>
   <div class="wrap">
-    <a class="brand" href="#top"><img src="assets/mascot.png" alt="" width="24" height="24"> DoctorDock</a>
+    <a class="brand" href="#top"><img src="assets/mascot.png?v=2" alt="" width="24" height="24"> DoctorDock</a>
     <nav class="foot-links">
       <a href="https://github.com/iamcanturk/DoctorDock/blob/main/docs/RULES.md">Rules</a>
       <a href="https://github.com/iamcanturk/DoctorDock/blob/main/docs/JSON_SCHEMA.md">JSON schema</a>
