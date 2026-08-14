@@ -272,6 +272,71 @@
     <div class="callout good"><strong>İpucu:</strong> Her hamleden sonra o postun linkini X'te kendi thread'ine yanıt olarak ekle — tüm lansmanı tek bir yerden takip edilebilir kılar ve etkileşimi biriktirir.</div>
   </section>
 
+  <section class="page" data-title="Kurallar & Uyum" data-icon="⚖">
+    <span class="eyebrow">Önce oku</span>
+    <h1>Platform kuralları & yapılacaklar</h1>
+    <p class="lede">Her platformun yazılı kuralları var; ihlal edince postun sessizce silinir ya da ban yersin. Aşağıdakileri lansmandan önce yap.</p>
+
+    <div class="callout warn"><strong>Altın kural (hepsi için):</strong> Asla açıkça "upvote / oy verin" deme. Reddit, Hacker News ve Product Hunt bunu <strong>yasaklar</strong>; oy manipülasyonu hesabını uçurabilir. Bunun yerine "çıktı, bir dene, geri bildirim isterim" de — o kadar.</div>
+
+    <h2>Reddit — önce hesabını hazırla</h2>
+    <ol class="steps">
+      <li>E-postanı <strong>doğrula</strong>, bir avatar ve kısa bio ekle — boş hesap "spam bot" gibi görünür, otomatik filtrelere takılır.</li>
+      <li><strong>Yorum karma'sı topla.</strong> Hesabın eski (yaş kapısını geçer) ama aktivitesizse çoğu sub yeni hesap gibi filtreler. Lansmandan <strong>birkaç gün önce</strong> ilgili subreddit'lerde gerçek yorumlar yaz — hedef en az ~50–100 comment karma.</li>
+      <li>Girmek istediğin her subreddit'in <strong>"Rules" / sidebar</strong> kısmını oku — bazıları minimum karma/yaş, zorunlu <em>flair</em>, ya da sadece belirli gün self-promo ister.</li>
+    </ol>
+
+    <h2>Reddit — her subreddit'te geçerli kurallar</h2>
+    <ul>
+      <li><strong>9:1 kuralı:</strong> Her 1 kendi linkine karşılık ~9 katkı (yorum/yardım). Profilinde sadece kendi linkin varsa spam sayılırsın.</li>
+      <li><strong>Şeffaf ol:</strong> "I'm the developer / geliştiricisiyim" diye açıkça belirt.</li>
+      <li><strong>Çapraz-post etme:</strong> Aynı metni birden çok sub'a yapıştırma; her birine özel yaz.</li>
+      <li><strong>Oy isteme yok, oy ringi yok</strong> (Reddit site geneli kural).</li>
+      <li>Başlıkta clickbait/abartı yok; önce problem, link gövdenin içinde.</li>
+    </ul>
+
+    <h2>Reddit — subreddit subreddit ne yapmalı</h2>
+    <table>
+      <thead><tr><th>Subreddit</th><th>Kilit kural</th><th>Ne yap</th></tr></thead>
+      <tbody>
+        <tr><td>r/selfhosted</td><td>Self-host edilebilir olmalı; geliştirici olduğunu açıkla; salt reklam yasak</td><td>"Kendi makinende, açık kaynak, çevrimdışı" vurgusu + ekran görüntüsü</td></tr>
+        <tr><td>r/docker</td><td>Doğrudan Docker konusu; düşük efor/blogspam silinir</td><td>Önce problemi anlat, sonra aracı; yorumlara cevap ver</td></tr>
+        <tr><td>r/devops</td><td>Self-promo sınırlı; blogspam sevmez; haftalık thread'ler olabilir</td><td>CI kapısı / exit-code açısını öne çıkar, değer kat</td></tr>
+        <tr><td>r/golang</td><td>"Go ile yaptım" paylaşımına açık; kuralları oku</td><td>Go tarafını vurgula (tek binary, deterministik)</td></tr>
+        <tr><td>r/commandline</td><td>CLI araçları için doğru yer</td><td>Terminal demo GIF'ini ekle</td></tr>
+        <tr><td>r/opensource</td><td>Gerçekten açık kaynak olmalı (MIT ✓)</td><td>Lisans + repo linki net olsun</td></tr>
+        <tr><td>r/coolgithubprojects</td><td><strong>Zorunlu başlık formatı</strong>: dil + GitHub linki şart</td><td>Sub'ın başlık şablonuna birebir uy</td></tr>
+        <tr><td>r/SideProject</td><td>İçten lansmanları sever; aşırı satış diline karşı</td><td>"Şunu yaşadım, bunu yaptım" hikayesi</td></tr>
+      </tbody>
+    </table>
+    <div class="callout"><strong>Not:</strong> <strong>r/netsec</strong> self-promo'ya neredeyse kapalıdır (özgün araştırma/haber ister) — orada yalnızca oku, kendi aracını paylaşma.</div>
+
+    <h2>Hacker News — Show HN kuralları</h2>
+    <ul>
+      <li>Başlık <strong>"Show HN:"</strong> ile başlar; abartı/emoji yok, başlığı süsleme.</li>
+      <li>İnsanların <strong>deneyebileceği</strong> bir şey olmalı (sende ✓ — brew ile kurulur).</li>
+      <li><strong>Oy/asfalt isteme</strong>, oy ringi kurma (anında shadowban).</li>
+      <li>Bir kez gönder, hemen tekrar gönderme. Ön sayfaya çıkarsa saatlerce cevapla.</li>
+      <li>İlk yorumu maker olarak sen yaz. Resmi rehber: <a href="https://news.ycombinator.com/showhn.html">news.ycombinator.com/showhn.html</a></li>
+    </ul>
+
+    <h2>Product Hunt kuralları</h2>
+    <ul>
+      <li><strong>Bir ürün = bir lansman</strong> (büyük güncellemede tekrar lanse edebilirsin).</li>
+      <li><strong>Oy isteme YASAK</strong> — DM/gruptan "upvote" istemek gönderini gömer. "Bugün PH'deyiz, bir bak" diyebilirsin.</li>
+      <li>Maker olarak katıl, <strong>ilk yorumu</strong> yaz, gün boyu cevapla.</li>
+      <li>00:01 PT'de başlar; galeri + tagline + açıklama önceden hazır olsun.</li>
+      <li>Artık kendini "hunt" edebilirsin — ayrı bir hunter şart değil.</li>
+    </ul>
+
+    <h2>X · LinkedIn · dev.to (kural değil ama uy)</h2>
+    <ul>
+      <li><strong>X:</strong> Linkleri <em>son</em> tweet'e koy (algoritma linkli ilk tweet'i az gösterir). "RT'le" tarzı engagement-bait yok.</li>
+      <li><strong>LinkedIn:</strong> Repo linkini <em>ilk yoruma</em> koy; 3–5 hashtag yeter.</li>
+      <li><strong>dev.to / Hashnode:</strong> Blog'u WordPress'te yayınla; çapraz-yayında <strong>canonical URL</strong> ver (SEO cezası yememek için). dev.to'da en fazla 4 tag.</li>
+    </ul>
+  </section>
+
   <section class="page" data-title="X (Twitter)" data-icon="5">
     <span class="eyebrow">Kanal</span>
     <h1>X / Twitter <span class="pill tag-x">ana kıvılcım</span></h1>
