@@ -1,8 +1,8 @@
-# Build output
+# Build output (root-anchored so they don't hide the cmd/doctordock source dir)
 /bin/
 /dist/
-doctordock
-ddock
+/doctordock
+/ddock
 *.exe
 
 # Test artifacts
